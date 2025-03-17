@@ -67,9 +67,11 @@ export default function Map() {
 
     return kRing.map((h3Index) => {
       const boundary = h3.cellToBoundary(h3Index);
+      const center = h3.cellToLatLng(h3Index);
       return {
         id: h3Index,
         paths: boundary.map(([lat, lng]) => ({ lat, lng })),
+        center: { lat: center[0], lng: center[1] },
         completed: false,
       };
     });
@@ -95,9 +97,8 @@ export default function Map() {
     setSelectedBusiness(null);
 
     try {
-      const center = h3.cellToLatLng(hexagon.id);
       const response = await fetch(
-        `http://localhost:5000/api/businesses/search?lat=${center[0]}&lng=${center[1]}`
+        `http://localhost:5000/api/businesses/search?lat=${hexagon.center.lat}&lng=${hexagon.center.lng}`
       );
 
       if (!response.ok) {
