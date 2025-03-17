@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { GoogleMap, useLoadScript, Polygon } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  useLoadScript,
+  Polygon,
+  Marker,
+} from "@react-google-maps/api";
 import * as h3 from "h3-js";
 import MapSearch from "./ui/map-search";
 import BusinessSidebar from "./ui/business-sidebar";
@@ -45,6 +50,7 @@ export default function Map() {
   const [map, setMap] = useState(null);
   const [businesses, setBusinesses] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState(null);
 
   const generateHexagons = useCallback((bounds, zoom) => {
     if (!bounds) return [];
@@ -86,6 +92,7 @@ export default function Map() {
     setSelectedHexagon(hexagon);
     setIsLoading(true);
     setBusinesses(null);
+    setSelectedBusiness(null);
 
     try {
       const center = h3.cellToLatLng(hexagon.id);
@@ -101,7 +108,6 @@ export default function Map() {
       setBusinesses(data.businesses);
     } catch (error) {
       console.error("Error fetching businesses:", error);
-      // You might want to show an error message to the user here
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +126,21 @@ export default function Map() {
   const handleCloseSidebar = useCallback(() => {
     setSelectedHexagon(null);
     setBusinesses(null);
+    setSelectedBusiness(null);
   }, []);
+
+  const handleMarkerClick = useCallback(
+    (business) => {
+      setSelectedBusiness(business);
+      if (map) {
+        map.panTo({
+          lat: business.location.lat,
+          lng: business.location.lng,
+        });
+      }
+    },
+    [map]
+  );
 
   if (loadError) {
     return (
@@ -147,6 +167,8 @@ export default function Map() {
         businesses={businesses}
         isLoading={isLoading}
         onClose={handleCloseSidebar}
+        selectedBusiness={selectedBusiness}
+        onBusinessClick={handleMarkerClick}
       />
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
@@ -174,6 +196,21 @@ export default function Map() {
               strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.6,
               clickable: true,
             }}
+          />
+        ))}
+        {businesses?.map((business) => (
+          <Marker
+            key={business.place_id}
+            position={{
+              lat: business.location.lat,
+              lng: business.location.lng,
+            }}
+            onClick={() => handleMarkerClick(business)}
+            animation={
+              selectedBusiness?.place_id === business.place_id
+                ? window.google.maps.Animation.BOUNCE
+                : null
+            }
           />
         ))}
       </GoogleMap>
