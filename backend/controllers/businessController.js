@@ -154,9 +154,9 @@ export const fetchBusinesses = async (req, res) => {
       "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
     const initialParams = {
       location: `${lat},${lng}`,
-      radius: 6000, // 6km radius
+      radius: 1000, // Adjusted to ~1000m to match H3 resolution 8 hexagon size
       key: process.env.GOOGLE_PLACES_API_KEY,
-      type: ALLOWED_TYPES, // Google Places API will handle this appropriately
+      type: ALLOWED_TYPES,
     };
 
     const allResults = await fetchAllPages(baseUrl, initialParams);

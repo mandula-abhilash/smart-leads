@@ -26,7 +26,7 @@ const options = {
   disableDefaultUI: true,
   zoomControl: false,
   zoom: 15,
-  minZoom: 15,
+  minZoom: 14,
   maxZoom: 18,
   streetViewControl: false,
   mapTypeControl: false,
@@ -57,13 +57,13 @@ export default function Map() {
 
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    const resolution = 9;
+    const resolution = 8;
 
     const centerLat = (ne.lat() + sw.lat()) / 2;
     const centerLng = (ne.lng() + sw.lng()) / 2;
 
     const centerHex = h3.latLngToCell(centerLat, centerLng, resolution);
-    const kRing = h3.gridDisk(centerHex, 20);
+    const kRing = h3.gridDisk(centerHex, 15);
 
     return kRing.map((h3Index) => {
       const boundary = h3.cellToBoundary(h3Index);
