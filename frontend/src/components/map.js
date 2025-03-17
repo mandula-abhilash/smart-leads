@@ -53,9 +53,8 @@ export default function Map() {
     const centerLat = (ne.lat() + sw.lat()) / 2;
     const centerLng = (ne.lng() + sw.lng()) / 2;
 
-    // Get the base hexagon and its neighbors
     const centerHex = h3.latLngToCell(centerLat, centerLng, resolution);
-    const kRing = h3.gridDisk(centerHex, 20); // Get 2 rings of hexagons
+    const kRing = h3.gridDisk(centerHex, 20);
 
     return kRing.map((h3Index) => {
       const boundary = h3.cellToBoundary(h3Index);
@@ -82,7 +81,6 @@ export default function Map() {
 
   const handleHexagonClick = useCallback((hexagon) => {
     setSelectedHexagon(hexagon);
-    // TODO: Fetch businesses for this hexagon from the backend
     console.log("Clicked hexagon:", hexagon.id);
   }, []);
 
@@ -131,16 +129,16 @@ export default function Map() {
             paths={hexagon.paths}
             onClick={() => handleHexagonClick(hexagon)}
             options={{
-              fillColor: hexagon.completed ? "#4ade80" : "#3b82f6",
-              fillOpacity: selectedHexagon?.id === hexagon.id ? 0.4 : 0,
+              fillColor: hexagon.completed ? "#10b981" : "#2563eb",
+              fillOpacity: selectedHexagon?.id === hexagon.id ? 0.25 : 0.08,
               strokeColor:
                 selectedHexagon?.id === hexagon.id
                   ? "#000000"
                   : hexagon.completed
-                  ? "#4ade80"
-                  : "#3b82f6",
-              strokeWeight: selectedHexagon?.id === hexagon.id ? 2 : 1,
-              strokeOpacity: 1,
+                  ? "#10b981"
+                  : "#2563eb",
+              strokeWeight: selectedHexagon?.id === hexagon.id ? 2.5 : 1.5,
+              strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.6,
               clickable: true,
             }}
           />
