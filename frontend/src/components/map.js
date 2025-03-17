@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { useState, useCallback } from "react";
+import { GoogleMap, useLoadScript, Polygon } from "@react-google-maps/api";
 import * as h3 from "h3-js";
 import MapSearch from "./ui/map-search";
 
@@ -12,13 +12,18 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-  lat: 40.7128,
-  lng: -74.006, // New York City
+  lat: 17.519330500446294,
+  lng: 78.30199254778114,
 };
 
 const options = {
   disableDefaultUI: true,
-  zoomControl: true,
+  zoomControl: false,
+  zoom: 15,
+  minZoom: 15,
+  maxZoom: 18,
+  streetViewControl: false,
+  mapTypeControl: false,
   styles: [
     {
       featureType: "poi",
@@ -38,54 +43,47 @@ export default function Map() {
   const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [map, setMap] = useState(null);
 
-  const generateHexagons = useCallback(
-    (center, zoom) => {
-      if (!map) return;
+  const generateHexagons = useCallback((bounds, zoom) => {
+    if (!bounds) return [];
 
-      const bounds = map.getBounds();
-      if (!bounds) return;
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    const resolution = 9;
 
-      const ne = bounds.getNorthEast();
-      const sw = bounds.getSouthWest();
+    const centerLat = (ne.lat() + sw.lat()) / 2;
+    const centerLng = (ne.lng() + sw.lng()) / 2;
 
-      const resolution = zoom >= 15 ? 9 : zoom >= 12 ? 8 : 7;
+    // Get the base hexagon and its neighbors
+    const centerHex = h3.latLngToCell(centerLat, centerLng, resolution);
+    const kRing = h3.gridDisk(centerHex, 20); // Get 2 rings of hexagons
 
-      const hexagons = [];
-      const step = (ne.lng() - sw.lng()) / 10;
+    return kRing.map((h3Index) => {
+      const boundary = h3.cellToBoundary(h3Index);
+      return {
+        id: h3Index,
+        paths: boundary.map(([lat, lng]) => ({ lat, lng })),
+        completed: false,
+      };
+    });
+  }, []);
 
-      for (let lng = sw.lng(); lng <= ne.lng(); lng += step) {
-        for (let lat = sw.lat(); lat <= ne.lat(); lat += step) {
-          const h3Index = h3.latLngToCell(lat, lng, resolution);
-          const vertices = h3.cellToBoundary(h3Index, true);
-
-          hexagons.push({
-            id: h3Index,
-            paths: vertices.map(([lat, lng]) => ({ lat, lng })),
-            completed: false, // This will be updated from the backend
-          });
-        }
-      }
-
-      setHexagons(hexagons);
-    },
-    [map]
-  );
-
-  const handleMapLoad = useCallback((map) => {
-    setMap(map);
+  const handleMapLoad = useCallback((mapInstance) => {
+    setMap(mapInstance);
   }, []);
 
   const handleMapIdle = useCallback(() => {
-    if (map) {
-      const center = map.getCenter();
-      const zoom = map.getZoom();
-      generateHexagons(center, zoom);
-    }
+    if (!map) return;
+
+    const bounds = map.getBounds();
+    const zoom = map.getZoom();
+    const newHexagons = generateHexagons(bounds, zoom);
+    setHexagons(newHexagons);
   }, [map, generateHexagons]);
 
   const handleHexagonClick = useCallback((hexagon) => {
     setSelectedHexagon(hexagon);
     // TODO: Fetch businesses for this hexagon from the backend
+    console.log("Clicked hexagon:", hexagon.id);
   }, []);
 
   const handleLocationSelect = useCallback(
@@ -98,65 +96,54 @@ export default function Map() {
     [map]
   );
 
-  if (loadError) return <div>Error loading maps</div>;
-  if (!isLoaded) return <div>Loading...</div>;
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">
+          Error loading maps. Please check your API key.
+        </p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading maps...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-screen">
       <MapSearch onSelectLocation={handleLocationSelect} />
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        zoom={12}
+        zoom={15}
         center={defaultCenter}
         options={options}
         onLoad={handleMapLoad}
         onIdle={handleMapIdle}
       >
         {hexagons.map((hexagon) => (
-          <div
+          <Polygon
             key={hexagon.id}
+            paths={hexagon.paths}
             onClick={() => handleHexagonClick(hexagon)}
-            style={{
-              position: "absolute",
-              left: "0",
-              top: "0",
-              width: "100%",
-              height: "100%",
+            options={{
+              fillColor: hexagon.completed ? "#4ade80" : "#3b82f6",
+              fillOpacity: selectedHexagon?.id === hexagon.id ? 0.4 : 0,
+              strokeColor:
+                selectedHexagon?.id === hexagon.id
+                  ? "#000000"
+                  : hexagon.completed
+                  ? "#4ade80"
+                  : "#3b82f6",
+              strokeWeight: selectedHexagon?.id === hexagon.id ? 2 : 1,
+              strokeOpacity: 1,
+              clickable: true,
             }}
-          >
-            <svg
-              style={{
-                position: "absolute",
-                left: "0",
-                top: "0",
-                width: "100%",
-                height: "100%",
-                pointerEvents: "none",
-              }}
-            >
-              <path
-                d={`M ${hexagon.paths
-                  .map((point) => {
-                    const pixel = map?.getProjection().fromLatLngToPoint(point);
-                    return `${pixel.x},${pixel.y}`;
-                  })
-                  .join(" L ")} Z`}
-                fill={
-                  hexagon.completed
-                    ? "rgba(0, 255, 0, 0.2)"
-                    : "rgba(0, 0, 255, 0.2)"
-                }
-                stroke={
-                  selectedHexagon?.id === hexagon.id
-                    ? "#000"
-                    : hexagon.completed
-                    ? "#0f0"
-                    : "#00f"
-                }
-                strokeWidth="2"
-              />
-            </svg>
-          </div>
+          />
         ))}
       </GoogleMap>
     </div>
