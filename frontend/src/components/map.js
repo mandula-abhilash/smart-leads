@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { GoogleMap, useLoadScript, Polygon } from "@react-google-maps/api";
 import * as h3 from "h3-js";
 import MapSearch from "./ui/map-search";
+import BusinessSidebar from "./ui/business-sidebar";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -42,6 +43,8 @@ export default function Map() {
   const [hexagons, setHexagons] = useState([]);
   const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [map, setMap] = useState(null);
+  const [businesses, setBusinesses] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const generateHexagons = useCallback((bounds, zoom) => {
     if (!bounds) return [];
@@ -79,9 +82,29 @@ export default function Map() {
     setHexagons(newHexagons);
   }, [map, generateHexagons]);
 
-  const handleHexagonClick = useCallback((hexagon) => {
+  const handleHexagonClick = useCallback(async (hexagon) => {
     setSelectedHexagon(hexagon);
-    console.log("Clicked hexagon:", hexagon.id);
+    setIsLoading(true);
+    setBusinesses(null);
+
+    try {
+      const center = h3.cellToLatLng(hexagon.id);
+      const response = await fetch(
+        `http://localhost:5000/api/businesses/search?lat=${center[0]}&lng=${center[1]}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch businesses");
+      }
+
+      const data = await response.json();
+      setBusinesses(data.businesses);
+    } catch (error) {
+      console.error("Error fetching businesses:", error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleLocationSelect = useCallback(
@@ -93,6 +116,11 @@ export default function Map() {
     },
     [map]
   );
+
+  const handleCloseSidebar = useCallback(() => {
+    setSelectedHexagon(null);
+    setBusinesses(null);
+  }, []);
 
   if (loadError) {
     return (
@@ -115,6 +143,11 @@ export default function Map() {
   return (
     <div className="relative w-full h-screen">
       <MapSearch onSelectLocation={handleLocationSelect} />
+      <BusinessSidebar
+        businesses={businesses}
+        isLoading={isLoading}
+        onClose={handleCloseSidebar}
+      />
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={15}
