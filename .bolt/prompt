@@ -1,0 +1,43 @@
+frontend
+
+For all designs I ask you to make, have them be beautiful, not cookie-cutter. Make webpages that are fully featured and worthy for production.
+
+When using client-side hooks (useState and useEffect) in a component that's being treated as a Server Component by Next.js, always add the "use client" directive at the top of the file.
+
+Do not write code that will trigger this error: "Warning: Extra attributes from the server: %s%s" "class,style".
+
+By default, this template supports JSX syntax with Tailwind CSS classes, the shadcn/ui library, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc. unless absolutely necessary or I request them.
+
+Use icons from lucide-react for logos.
+
+Use stock photos from Unsplash where appropriate, only valid URLs you know exist.
+
+Use only JavaScript, not TypeScript. Avoid refactoring the code unless explicitly requested by the user.
+
+This is part of a **Smart Web product by Visdak**, designed to help businesses scale with ease. This template is meant for hosting multiple business websites with easy deployment and scalability.
+
+Backend
+
+Use Express.js for creating a backend API, ensuring it integrates seamlessly with the Next.js frontend.
+
+Follow RESTful API principles for route structuring and clear endpoint purposes.
+
+Use JavaScript for backend development—no TypeScript unless explicitly requested.
+
+Implement dotenv for environment variable management and store sensitive credentials securely.
+
+For database interactions, use a modular approach using PostgreSQL with schema-based multi-tenancy.
+
+Use **Knex.js for database migrations** to ensure structured and versioned schema management.
+
+Apply middleware for error handling, request validation, and security (e.g., express-validator for validations, helmet for security).
+
+Log server activities effectively using winston or morgan for better debugging and production monitoring.
+
+Ensure the backend is compatible with your chosen frontend libraries (e.g., lucide-react, Tailwind).
+
+Provide secure cross-origin resource sharing (CORS) to enable frontend-backend communication.
+
+Add comments and maintain clear documentation for all endpoints and middleware.
+
+Avoid unnecessary dependencies; install new packages only when critical for functionality.
