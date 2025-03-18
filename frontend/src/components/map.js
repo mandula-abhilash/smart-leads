@@ -8,8 +8,8 @@ import {
   Marker,
 } from "@react-google-maps/api";
 import * as h3 from "h3-js";
-import MapSearch from "./ui/map-search";
 import BusinessSidebar from "./ui/business-sidebar";
+import MapControlsSidebar from "./ui/map-controls-sidebar";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -51,6 +51,7 @@ export default function Map() {
   const [businesses, setBusinesses] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const [mapType, setMapType] = useState("roadmap");
 
   const generateHexagons = useCallback((bounds, zoom) => {
     if (!bounds) return [];
@@ -143,6 +144,16 @@ export default function Map() {
     [map]
   );
 
+  const handleMapTypeChange = useCallback(
+    (type) => {
+      if (map) {
+        map.setMapTypeId(type);
+        setMapType(type);
+      }
+    },
+    [map]
+  );
+
   if (loadError) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -163,7 +174,10 @@ export default function Map() {
 
   return (
     <div className="relative w-full h-screen">
-      <MapSearch onSelectLocation={handleLocationSelect} />
+      <MapControlsSidebar
+        onSelectLocation={handleLocationSelect}
+        onMapTypeChange={handleMapTypeChange}
+      />
       <BusinessSidebar
         businesses={businesses}
         isLoading={isLoading}
@@ -175,7 +189,10 @@ export default function Map() {
         mapContainerStyle={mapContainerStyle}
         zoom={15}
         center={defaultCenter}
-        options={options}
+        options={{
+          ...options,
+          mapTypeId: mapType,
+        }}
         onLoad={handleMapLoad}
         onIdle={handleMapIdle}
       >

@@ -36,7 +36,7 @@ export default function MapSearch({ onSelectLocation }) {
   };
 
   return (
-    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 w-[500px] max-w-[calc(100%-3rem)]">
+    <div className="w-full">
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 h-5 w-5" />
         <input
@@ -47,12 +47,12 @@ export default function MapSearch({ onSelectLocation }) {
           }}
           disabled={!ready}
           placeholder="Search locations..."
-          className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500"
+          className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500"
         />
       </div>
 
       {isOpen && status === "OK" && (
-        <div className="absolute w-full mt-2 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-100 max-h-[300px] overflow-auto">
+        <div className="absolute w-full mt-2 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-100 max-h-[300px] overflow-auto z-50">
           {data.map((suggestion) => {
             const {
               place_id,
