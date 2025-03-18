@@ -66,13 +66,19 @@ export async function createBusiness(businessData) {
 
   if (existingBusiness) {
     // Update existing business
-    return db("vd_sw_businesses")
+    const [updated] = await db("vd_sw_businesses")
       .where("place_id", place_id)
       .update({
         ...businessRecord,
         updated_at: db.fn.now(),
       })
-      .returning("*");
+      .returning([
+        "*",
+        db.raw("ST_X(geometry::geometry) as lng"),
+        db.raw("ST_Y(geometry::geometry) as lat"),
+      ]);
+
+    return [updated];
   }
 
   // Create new business
@@ -82,7 +88,11 @@ export async function createBusiness(businessData) {
       created_at: db.fn.now(),
       updated_at: db.fn.now(),
     })
-    .returning("*");
+    .returning([
+      "*",
+      db.raw("ST_X(geometry::geometry) as lng"),
+      db.raw("ST_Y(geometry::geometry) as lat"),
+    ]);
 }
 
 export async function getBusinessesByHexagon(hexagonId) {
