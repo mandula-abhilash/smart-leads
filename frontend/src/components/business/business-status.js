@@ -60,7 +60,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
 
     setIsUpdating(true);
     try {
-      await onStatusChange({ status: newStatus, place_id: placeId });
+      await onStatusChange(placeId, newStatus);
     } catch (error) {
       console.error("Error updating business status:", error);
     } finally {

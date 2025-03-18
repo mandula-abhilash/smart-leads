@@ -116,16 +116,16 @@ export function BusinessProvider({ children }) {
   }, []);
 
   const updateBusinessStatus = useCallback(
-    async (business) => {
+    async (placeId, status) => {
       try {
         const response = await fetch(
-          `${BACKEND_URL}/api/hexagons/businesses/${business.place_id}/status`,
+          `${BACKEND_URL}/api/hexagons/businesses/${placeId}/status`,
           {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ status: business.status }),
+            body: JSON.stringify({ status }),
           }
         );
 
@@ -135,17 +135,29 @@ export function BusinessProvider({ children }) {
 
         const updatedBusiness = await response.json();
 
+        // Process the business data to ensure it has all required fields
+        const processedBusiness = {
+          ...updatedBusiness,
+          analysis: {
+            opportunityScore: updatedBusiness.opportunity_score || 0,
+            insights: updatedBusiness.insights || [],
+            priority: updatedBusiness.priority || "low",
+          },
+        };
+
+        // Update businesses state
         setBusinesses((prevBusinesses) =>
           prevBusinesses.map((b) =>
-            b.place_id === updatedBusiness.place_id ? updatedBusiness : b
+            b.place_id === processedBusiness.place_id ? processedBusiness : b
           )
         );
 
-        if (selectedBusiness?.place_id === updatedBusiness.place_id) {
-          setSelectedBusiness(updatedBusiness);
+        // Update selected business if it's the one being modified
+        if (selectedBusiness?.place_id === processedBusiness.place_id) {
+          setSelectedBusiness(processedBusiness);
         }
 
-        return updatedBusiness;
+        return processedBusiness;
       } catch (error) {
         console.error("Error updating business status:", error);
         throw error;
