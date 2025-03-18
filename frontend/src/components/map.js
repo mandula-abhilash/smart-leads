@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   GoogleMap,
   useLoadScript,
@@ -15,9 +15,7 @@ import MapSearch from "./map-search";
 import { Button } from "./ui/button";
 import { MapIcon, Satellite, Globe, Mountain } from "lucide-react";
 import { getStatusIcon, getStatusColor } from "./business/business-status";
-
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+import { useBusinessContext } from "@/contexts/BusinessContext";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -58,16 +56,35 @@ export default function Map() {
     libraries,
   });
 
+  const {
+    businesses,
+    areaAnalysis,
+    selectedBusiness,
+    selectedHexagon,
+    isLoading,
+    setSelectedBusiness,
+    fetchHexagonBusinesses,
+    clearSelection,
+  } = useBusinessContext();
+
   const [hexagons, setHexagons] = useState([]);
-  const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [map, setMap] = useState(null);
-  const [businesses, setBusinesses] = useState([]);
-  const [areaAnalysis, setAreaAnalysis] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [mapType, setMapType] = useState("hybrid");
   const [zoom, setZoom] = useState(15);
   const [searchQuery, setSearchQuery] = useState("");
+  const [markers, setMarkers] = useState([]);
+
+  // Update markers whenever businesses change
+  useEffect(() => {
+    if (businesses && businesses.length > 0) {
+      const validBusinesses = businesses.filter(
+        (business) => business.location?.lat && business.location?.lng
+      );
+      setMarkers(validBusinesses);
+    } else {
+      setMarkers([]);
+    }
+  }, [businesses]);
 
   const generateHexagons = useCallback((bounds) => {
     if (!bounds) return [];
@@ -129,45 +146,10 @@ export default function Map() {
 
   const handleHexagonClick = useCallback(
     async (hexagon) => {
-      try {
-        setBusinesses([]);
-        setAreaAnalysis(null);
-        setSelectedBusiness(null);
-        setIsLoading(true);
-
-        const response = await fetch(
-          `${BACKEND_URL}/api/hexagons/${hexagon.id}/businesses`
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Update hexagon state
-        setSelectedHexagon({
-          ...data.hexagon,
-          businesses_fetched: Boolean(data.hexagon.businesses_fetched),
-          no_businesses_found: Boolean(data.hexagon.no_businesses_found),
-        });
-
-        centerAndZoomOnHexagon(hexagon);
-
-        // Update businesses and analysis
-        setBusinesses(data.businesses || []);
-        setAreaAnalysis(data.areaAnalysis);
-      } catch (error) {
-        console.error("Error fetching hexagon data:", error);
-        setSelectedHexagon((prev) => ({
-          ...prev,
-          error: "Failed to fetch hexagon data",
-        }));
-      } finally {
-        setIsLoading(false);
-      }
+      await fetchHexagonBusinesses(hexagon.id);
+      centerAndZoomOnHexagon(hexagon);
     },
-    [centerAndZoomOnHexagon]
+    [fetchHexagonBusinesses, centerAndZoomOnHexagon]
   );
 
   const handleLocationSelect = useCallback(
@@ -195,7 +177,7 @@ export default function Map() {
         }
       }
     },
-    [map]
+    [map, setSelectedBusiness]
   );
 
   const handleMapTypeChange = useCallback(
@@ -207,29 +189,6 @@ export default function Map() {
     },
     [map]
   );
-
-  const handleBusinessStatusChange = useCallback((updatedBusiness) => {
-    setBusinesses((prevBusinesses) =>
-      prevBusinesses.map((business) =>
-        business.place_id === updatedBusiness.place_id
-          ? updatedBusiness
-          : business
-      )
-    );
-  }, []);
-
-  const handleFetchComplete = useCallback((data) => {
-    if (!data) return;
-
-    setSelectedHexagon({
-      ...data.hexagon,
-      businesses_fetched: Boolean(data.hexagon.businesses_fetched),
-      no_businesses_found: Boolean(data.hexagon.no_businesses_found),
-    });
-
-    setBusinesses(data.businesses || []);
-    setAreaAnalysis(data.areaAnalysis);
-  }, []);
 
   if (loadError) {
     return (
@@ -279,8 +238,6 @@ export default function Map() {
           <HexagonDetails
             hexagon={selectedHexagon}
             businesses={businesses}
-            onFetchComplete={handleFetchComplete}
-            onBusinessStatusChange={handleBusinessStatusChange}
             isLoading={isLoading}
           />
         ) : (
@@ -324,28 +281,24 @@ export default function Map() {
               }}
             />
           ))}
-          {businesses?.map((business) => {
-            if (!business.location?.lat || !business.location?.lng) return null;
-            const StatusIcon = getStatusIcon(business.status);
-            return (
-              <Marker
-                key={business.place_id}
-                position={{
-                  lat: business.location.lat,
-                  lng: business.location.lng,
-                }}
-                onClick={() => handleMarkerClick(business)}
-                icon={{
-                  path: window.google.maps.SymbolPath.CIRCLE,
-                  scale: 8,
-                  fillColor: getStatusColor(business.status),
-                  fillOpacity: 1,
-                  strokeWeight: 2,
-                  strokeColor: "#ffffff",
-                }}
-              />
-            );
-          })}
+          {markers.map((business) => (
+            <Marker
+              key={business.place_id}
+              position={{
+                lat: business.location.lat,
+                lng: business.location.lng,
+              }}
+              onClick={() => handleMarkerClick(business)}
+              icon={{
+                path: window.google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: getStatusColor(business.status),
+                fillOpacity: 1,
+                strokeWeight: 2,
+                strokeColor: "#ffffff",
+              }}
+            />
+          ))}
         </GoogleMap>
       </div>
 

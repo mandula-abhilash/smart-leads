@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Hexagon, MapPin, Loader2 } from "lucide-react";
 import BusinessStatus from "../business/business-status";
 import FetchBusinessesButton from "./fetch-businesses-button";
+import { useBusinessContext } from "@/contexts/BusinessContext";
 
 function formatType(type) {
   return type
@@ -12,38 +13,13 @@ function formatType(type) {
     .join(" ");
 }
 
-export default function HexagonDetails({
-  hexagon,
-  businesses,
-  onFetchComplete,
-  onBusinessStatusChange,
-  isLoading,
-}) {
+export default function HexagonDetails({ hexagon, businesses, isLoading }) {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [isFetching, setIsFetching] = useState(false);
-
-  const handleFetchComplete = (data) => {
-    setIsFetching(false);
-    if (onFetchComplete) {
-      onFetchComplete(data);
-    }
-  };
-
-  const handleFetchStart = () => {
-    setIsFetching(true);
-    if (onFetchComplete) {
-      // Clear existing data immediately
-      onFetchComplete({
-        hexagon,
-        businesses: [],
-        areaAnalysis: null,
-      });
-    }
-  };
+  const { updateBusinessStatus } = useBusinessContext();
 
   if (!hexagon) return null;
 
-  const showLoading = isLoading || isFetching;
+  const showLoading = isLoading;
   const showBusinesses = hexagon.businesses_fetched && businesses?.length > 0;
   const showNoBusinesses =
     hexagon.businesses_fetched && (!businesses || businesses.length === 0);
@@ -108,7 +84,7 @@ export default function HexagonDetails({
                   <BusinessStatus
                     status={business.status}
                     placeId={business.place_id}
-                    onStatusChange={onBusinessStatusChange}
+                    onStatusChange={updateBusinessStatus}
                   />
                 </div>
 
@@ -129,11 +105,7 @@ export default function HexagonDetails({
           </p>
         </div>
       ) : showFetchButton ? (
-        <FetchBusinessesButton
-          hexagonId={hexagon.hexagon_id}
-          onFetchComplete={handleFetchComplete}
-          onFetchStart={handleFetchStart}
-        />
+        <FetchBusinessesButton hexagonId={hexagon.hexagon_id} />
       ) : null}
     </div>
   );

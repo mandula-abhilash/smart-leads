@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { BusinessProvider } from "@/contexts/BusinessContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "VISDAK - Smart Leads",
-  description: "A hexagon-based business lead generator ",
+  description: "A hexagon-based business lead generator",
 };
 
 export default function RootLayout({ children }) {
@@ -22,7 +23,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <BusinessProvider>{children}</BusinessProvider>
       </body>
     </html>
   );
