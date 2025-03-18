@@ -61,7 +61,7 @@ export default function Map() {
   const [hexagons, setHexagons] = useState([]);
   const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [map, setMap] = useState(null);
-  const [businesses, setBusinesses] = useState(null);
+  const [businesses, setBusinesses] = useState([]);
   const [areaAnalysis, setAreaAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -130,7 +130,7 @@ export default function Map() {
   const handleHexagonClick = useCallback(
     async (hexagon) => {
       try {
-        setBusinesses(null);
+        setBusinesses([]);
         setAreaAnalysis(null);
         setSelectedBusiness(null);
         setIsLoading(true);
@@ -154,11 +154,9 @@ export default function Map() {
 
         centerAndZoomOnHexagon(hexagon);
 
-        // Update businesses and analysis if available
-        if (data.businesses?.length > 0) {
-          setBusinesses(data.businesses);
-          setAreaAnalysis(data.areaAnalysis);
-        }
+        // Update businesses and analysis
+        setBusinesses(data.businesses || []);
+        setAreaAnalysis(data.areaAnalysis);
       } catch (error) {
         console.error("Error fetching hexagon data:", error);
         setSelectedHexagon((prev) => ({
@@ -229,13 +227,8 @@ export default function Map() {
       no_businesses_found: Boolean(data.hexagon.no_businesses_found),
     });
 
-    if (data.businesses?.length > 0) {
-      setBusinesses(data.businesses);
-      setAreaAnalysis(data.areaAnalysis);
-    } else {
-      setBusinesses([]);
-      setAreaAnalysis(null);
-    }
+    setBusinesses(data.businesses || []);
+    setAreaAnalysis(data.areaAnalysis);
   }, []);
 
   if (loadError) {

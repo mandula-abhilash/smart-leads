@@ -36,11 +36,37 @@ export default function FetchBusinessesButton({
       }
 
       const data = await response.json();
+
+      // Process the data and ensure we have valid structures
+      const processedData = {
+        hexagon: {
+          ...data.hexagon,
+          businesses_fetched: true,
+          hexagon_id: hexagonId,
+          no_businesses_found: (data.businesses || []).length === 0,
+        },
+        businesses: data.businesses || [],
+        areaAnalysis: data.areaAnalysis || null,
+      };
+
       if (onFetchComplete) {
-        onFetchComplete(data);
+        onFetchComplete(processedData);
       }
     } catch (error) {
       console.error("Error fetching businesses:", error);
+      // Even on error, ensure we pass valid data structures
+      if (onFetchComplete) {
+        onFetchComplete({
+          hexagon: {
+            hexagon_id: hexagonId,
+            businesses_fetched: true,
+            no_businesses_found: true,
+            error: error.message,
+          },
+          businesses: [],
+          areaAnalysis: null,
+        });
+      }
     } finally {
       setIsLoading(false);
     }

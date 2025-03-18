@@ -22,7 +22,7 @@ export default function HexagonDetails({
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [isFetching, setIsFetching] = useState(false);
 
-  const handleFetchComplete = async (data) => {
+  const handleFetchComplete = (data) => {
     setIsFetching(false);
     if (onFetchComplete) {
       onFetchComplete(data);
@@ -31,6 +31,14 @@ export default function HexagonDetails({
 
   const handleFetchStart = () => {
     setIsFetching(true);
+    if (onFetchComplete) {
+      // Clear existing data immediately
+      onFetchComplete({
+        hexagon,
+        businesses: [],
+        areaAnalysis: null,
+      });
+    }
   };
 
   if (!hexagon) return null;
