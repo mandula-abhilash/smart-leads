@@ -12,7 +12,7 @@ import BusinessList from "./business/business-list";
 import BusinessDetails from "./business/business-details";
 import MapSearch from "./map-search";
 import { Button } from "./ui/button";
-import { MapIcon, Satellite, Globe, Mountain } from "lucide-react";
+import { MapIcon, Satellite, Globe, Mountain, Hexagon } from "lucide-react";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -46,6 +46,56 @@ const options = {
     },
   ],
 };
+
+function HexagonDetails({ hexagon, onFetchBusinesses, isLoading }) {
+  if (!hexagon) return null;
+
+  const center = h3.cellToLatLng(hexagon.id);
+  const areaSqKm = h3.cellArea(hexagon.id, "km2");
+  const resolution = h3.getResolution(hexagon.id);
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <Hexagon className="h-6 w-6 text-primary" />
+        <h2 className="text-xl font-semibold">Hexagon Details</h2>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+          <div>
+            <div className="text-sm text-muted-foreground">Hexagon ID</div>
+            <div className="font-mono text-sm">{hexagon.id}</div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">
+              Center Coordinates
+            </div>
+            <div className="font-mono text-sm">
+              {center[0].toFixed(6)}, {center[1].toFixed(6)}
+            </div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Resolution</div>
+            <div>{resolution}</div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Area</div>
+            <div>{areaSqKm.toFixed(2)} km²</div>
+          </div>
+        </div>
+
+        <Button
+          className="w-full cursor-pointer"
+          onClick={onFetchBusinesses}
+          disabled={isLoading}
+        >
+          {isLoading ? "Fetching Businesses..." : "Fetch Businesses"}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function Map() {
   const { isLoaded, loadError } = useLoadScript({
@@ -102,16 +152,20 @@ export default function Map() {
     setHexagons(newHexagons);
   }, [map, generateHexagons]);
 
-  const handleHexagonClick = useCallback(async (hexagon) => {
+  const handleHexagonClick = useCallback((hexagon) => {
     setSelectedHexagon(hexagon);
-    setIsLoading(true);
     setBusinesses(null);
     setAreaAnalysis(null);
     setSelectedBusiness(null);
+  }, []);
 
+  const fetchBusinesses = useCallback(async () => {
+    if (!selectedHexagon) return;
+
+    setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/businesses/search?lat=${hexagon.center.lat}&lng=${hexagon.center.lng}`
+        `http://localhost:5000/api/businesses/search?lat=${selectedHexagon.center.lat}&lng=${selectedHexagon.center.lng}`
       );
 
       if (!response.ok) {
@@ -126,7 +180,7 @@ export default function Map() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedHexagon]);
 
   const handleLocationSelect = useCallback(
     ({ lat, lng }) => {
@@ -181,7 +235,7 @@ export default function Map() {
 
   return (
     <div className="relative w-full h-screen flex overflow-hidden">
-      {/* Left Sidebar - Business List */}
+      {/* Left Sidebar - Hexagon Details or Business List */}
       <div className="w-80 h-screen border-r bg-background/95 backdrop-blur-sm flex flex-col z-20">
         {/* Map Controls */}
         <div className="border-b p-4 space-y-4 bg-background/50 backdrop-blur-sm">
@@ -204,8 +258,14 @@ export default function Map() {
           </div>
         </div>
 
-        {/* Business List */}
-        {businesses && (
+        {/* Hexagon Details or Business List */}
+        {selectedHexagon && !businesses ? (
+          <HexagonDetails
+            hexagon={selectedHexagon}
+            onFetchBusinesses={fetchBusinesses}
+            isLoading={isLoading}
+          />
+        ) : businesses ? (
           <BusinessList
             businesses={businesses}
             selectedBusiness={selectedBusiness}
@@ -213,7 +273,7 @@ export default function Map() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
-        )}
+        ) : null}
       </div>
 
       {/* Map */}
