@@ -366,7 +366,11 @@ export default function Map() {
       {/* Right Panel - Business Details */}
       {businesses && (
         <div className="w-[400px] h-screen border-l bg-background/95 backdrop-blur-sm z-20">
-          <BusinessDetails business={selectedBusiness} isLoading={isLoading} />
+          <BusinessDetails
+            business={selectedBusiness}
+            isLoading={isLoading}
+            businesses={businesses}
+          />
         </div>
       )}
     </div>

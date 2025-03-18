@@ -17,6 +17,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import CompetitorAnalysis from "./competitor-analysis";
 
 function formatPriceLevel(level) {
   return level ? "$".repeat(level) : "N/A";
@@ -73,7 +74,7 @@ function EmptyState() {
   );
 }
 
-export default function BusinessDetails({ business, isLoading }) {
+export default function BusinessDetails({ business, isLoading, businesses }) {
   if (isLoading) {
     return <BusinessDetailsSkeleton />;
   }
@@ -225,6 +226,9 @@ export default function BusinessDetails({ business, isLoading }) {
             </div>
           )}
         </div>
+
+        {/* Competitor Analysis */}
+        <CompetitorAnalysis business={business} allBusinesses={businesses} />
       </div>
     </div>
   );
