@@ -228,7 +228,7 @@ export default function BusinessDetails({ business, isLoading, businesses }) {
         </div>
 
         {/* Competitor Analysis */}
-        <CompetitorAnalysis business={business} allBusinesses={businesses} />
+        {/* <CompetitorAnalysis business={business} allBusinesses={businesses} /> */}
       </div>
     </div>
   );

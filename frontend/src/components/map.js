@@ -86,7 +86,7 @@ function HexagonDetails({ hexagon, onFetchBusinesses, isLoading }) {
         </div>
 
         <Button
-          className="w-full"
+          className="w-full cursor-pointer"
           onClick={onFetchBusinesses}
           disabled={isLoading}
         >
