@@ -25,11 +25,9 @@ const defaultCenter = {
 const options = {
   disableDefaultUI: true,
   zoomControl: false,
-  zoom: 15,
-  minZoom: 14,
-  maxZoom: 18,
   streetViewControl: false,
   mapTypeControl: false,
+  minZoom: 15,
   styles: [
     {
       featureType: "poi",
@@ -52,18 +50,18 @@ export default function Map() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [mapType, setMapType] = useState("roadmap");
+  const [zoom, setZoom] = useState(15);
 
-  const generateHexagons = useCallback((bounds, zoom) => {
+  const generateHexagons = useCallback((bounds) => {
     if (!bounds) return [];
 
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    const resolution = 8;
 
     const centerLat = (ne.lat() + sw.lat()) / 2;
     const centerLng = (ne.lng() + sw.lng()) / 2;
 
-    const centerHex = h3.latLngToCell(centerLat, centerLng, resolution);
+    const centerHex = h3.latLngToCell(centerLat, centerLng, 8);
     const kRing = h3.gridDisk(centerHex, 15);
 
     return kRing.map((h3Index) => {
@@ -86,8 +84,9 @@ export default function Map() {
     if (!map) return;
 
     const bounds = map.getBounds();
-    const zoom = map.getZoom();
-    const newHexagons = generateHexagons(bounds, zoom);
+    const currentZoom = map.getZoom();
+    setZoom(currentZoom);
+    const newHexagons = generateHexagons(bounds);
     setHexagons(newHexagons);
   }, [map, generateHexagons]);
 
@@ -119,7 +118,7 @@ export default function Map() {
     ({ lat, lng }) => {
       if (map) {
         map.panTo({ lat, lng });
-        map.setZoom(14);
+        map.setZoom(15);
       }
     },
     [map]
@@ -187,7 +186,7 @@ export default function Map() {
       />
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        zoom={15}
+        zoom={zoom}
         center={defaultCenter}
         options={{
           ...options,
