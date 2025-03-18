@@ -130,13 +130,11 @@ export default function Map() {
   const handleHexagonClick = useCallback(
     async (hexagon) => {
       try {
-        // Clear previous state
         setBusinesses(null);
         setAreaAnalysis(null);
         setSelectedBusiness(null);
         setIsLoading(true);
 
-        // Create initial hexagon state
         const initialHexagonState = {
           hexagon_id: hexagon.id,
           center: hexagon.center,
@@ -144,11 +142,9 @@ export default function Map() {
           no_businesses_found: false,
         };
 
-        // Update UI immediately with hexagon info
         setSelectedHexagon(initialHexagonState);
         centerAndZoomOnHexagon(hexagon);
 
-        // Check if hexagon exists and has businesses
         const response = await fetch(
           `${BACKEND_URL}/api/hexagons/${hexagon.id}/businesses`
         );
@@ -159,24 +155,17 @@ export default function Map() {
 
         const data = await response.json();
 
-        // Update hexagon data with fetched information
         setSelectedHexagon(data.hexagon);
 
         if (data.businesses?.length > 0) {
-          // Ensure each business has a valid location
-          const validBusinesses = data.businesses.map((business) => ({
-            ...business,
-            location: {
-              lat: parseFloat(business.lat || business.location?.lat),
-              lng: parseFloat(business.lng || business.location?.lng),
-            },
-          }));
+          const validBusinesses = data.businesses.filter(
+            (business) => business.location?.lat && business.location?.lng
+          );
           setBusinesses(validBusinesses);
           setAreaAnalysis(data.areaAnalysis);
         }
       } catch (error) {
         console.error("Error fetching hexagon data:", error);
-        // Keep the initial hexagon state on error
         setSelectedHexagon((prev) => ({
           ...prev,
           error: "Failed to fetch hexagon data",
@@ -200,8 +189,10 @@ export default function Map() {
 
   const handleMarkerClick = useCallback(
     (business) => {
+      if (!business.location?.lat || !business.location?.lng) return;
+
       setSelectedBusiness(business);
-      if (map && business.location) {
+      if (map) {
         map.panTo({
           lat: business.location.lat,
           lng: business.location.lng,
@@ -227,20 +218,13 @@ export default function Map() {
   );
 
   const handleBusinessStatusChange = useCallback((updatedBusiness) => {
+    if (!updatedBusiness.location?.lat || !updatedBusiness.location?.lng)
+      return;
+
     setBusinesses((prevBusinesses) =>
       prevBusinesses.map((business) =>
         business.place_id === updatedBusiness.place_id
-          ? {
-              ...updatedBusiness,
-              location: {
-                lat: parseFloat(
-                  updatedBusiness.lat || updatedBusiness.location?.lat
-                ),
-                lng: parseFloat(
-                  updatedBusiness.lng || updatedBusiness.location?.lng
-                ),
-              },
-            }
+          ? updatedBusiness
           : business
       )
     );
@@ -248,17 +232,13 @@ export default function Map() {
 
   const handleFetchComplete = useCallback((data) => {
     if (data.businesses?.length > 0) {
-      // Ensure each business has a valid location
-      const validBusinesses = data.businesses.map((business) => ({
-        ...business,
-        location: {
-          lat: parseFloat(business.lat || business.location?.lat),
-          lng: parseFloat(business.lng || business.location?.lng),
-        },
-      }));
+      const validBusinesses = data.businesses.filter(
+        (business) => business.location?.lat && business.location?.lng
+      );
       setBusinesses(validBusinesses);
       setAreaAnalysis(data.areaAnalysis);
     }
+
     setSelectedHexagon((prev) => ({
       ...prev,
       businesses_fetched: true,
@@ -361,6 +341,7 @@ export default function Map() {
           ))}
           {businesses?.map((business) => {
             if (!business.location?.lat || !business.location?.lng) return null;
+
             const StatusIcon = getStatusIcon(business.status);
             return (
               <Marker

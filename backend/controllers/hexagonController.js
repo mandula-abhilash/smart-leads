@@ -21,11 +21,12 @@ export async function getHexagonBusinesses(req, res) {
 
     // If hexagon doesn't exist, create it with initial state
     if (!hexagon) {
-      hexagon = {
+      const [newHexagon] = await createHexagon({
         hexagon_id: hexagonId,
         businesses_fetched: false,
         no_businesses_found: false,
-      };
+      });
+      hexagon = newHexagon;
     }
 
     // Get businesses for this hexagon if they exist
@@ -68,28 +69,30 @@ export async function createHexagonBusinesses(req, res) {
     let hexagon = await getHexagonById(hexagonId);
 
     if (!hexagon) {
-      hexagon = await createHexagon({
+      const [newHexagon] = await createHexagon({
         hexagon_id: hexagonId,
         businesses_fetched: true,
         no_businesses_found: businesses.length === 0,
       });
+      hexagon = newHexagon;
     } else {
       await updateHexagonStatus(hexagonId, {
         businesses_fetched: true,
         no_businesses_found: businesses.length === 0,
       });
+      hexagon = await getHexagonById(hexagonId);
     }
 
     // Save each business
     const savedBusinesses = await Promise.all(
       businesses.map(async (business) => {
         try {
-          const result = await createBusiness({
+          const [result] = await createBusiness({
             ...business,
             hexagon_id: hexagonId,
             status: "new", // Default status for new businesses
           });
-          return result[0];
+          return result;
         } catch (error) {
           console.error(`Error saving business ${business.place_id}:`, error);
           return null;
