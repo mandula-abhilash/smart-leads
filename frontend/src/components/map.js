@@ -13,8 +13,8 @@ import BusinessDetails from "./business/business-details";
 import HexagonDetails from "./map/hexagon-details";
 import MapSearch from "./map-search";
 import { Button } from "./ui/button";
-import { MapIcon, Satellite, Globe, Mountain, Store } from "lucide-react";
-import { getStatusIcon, getStatusColor } from "./business/business-status";
+import { MapIcon, Satellite, Globe, Mountain } from "lucide-react";
+import { getStatusColor } from "./business/business-status";
 import { useBusinessContext } from "@/contexts/BusinessContext";
 
 const libraries = ["places"];
@@ -50,16 +50,40 @@ const options = {
   ],
 };
 
-// Create SVG marker path for a store/business icon
-const createMarkerIcon = (color, scale = 1, selected = false) => ({
-  path: "M12 0C7.58 0 4 3.58 4 8c0 5.76 7.44 14.32 7.75 14.71.15.19.38.29.62.29s.47-.1.62-.29C13.56 22.32 21 13.76 21 8c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z",
-  fillColor: color,
-  fillOpacity: 1,
-  strokeWeight: selected ? 2 : 1,
-  strokeColor: "#FFFFFF",
-  scale: selected ? scale * 1.5 : scale,
-  anchor: new google.maps.Point(12, 24),
-});
+// Status icon paths mapping
+const STATUS_ICON_PATHS = {
+  new: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  contacted:
+    "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z",
+  responded:
+    "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0 0L8 12l2-2 2 2 4-4",
+  converted:
+    "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  rejected:
+    "M15.536 15.536a2 2 0 0 0-2.829-2.829M8.464 8.464a2 2 0 0 0 2.829 2.829M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+  ignored:
+    "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm4.5-14.5l-9 9",
+  follow_up:
+    "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-16v6l4 2",
+};
+
+// Create SVG marker path for status icons
+const createMarkerIcon = (status, scale = 1, selected = false) => {
+  const color = getStatusColor(status)
+    .replace("text-", "")
+    .replace("dark:", "");
+  const path = STATUS_ICON_PATHS[status] || STATUS_ICON_PATHS.new;
+
+  return {
+    path,
+    fillColor: color,
+    fillOpacity: 1,
+    strokeWeight: selected ? 2 : 1,
+    strokeColor: "#FFFFFF",
+    scale: selected ? scale * 1.5 : scale,
+    anchor: new google.maps.Point(12, 24),
+  };
+};
 
 export default function Map() {
   const { isLoaded, loadError } = useLoadScript({
@@ -385,9 +409,7 @@ export default function Map() {
                 }}
                 onClick={() => handleMarkerClick(business)}
                 icon={createMarkerIcon(
-                  getStatusColor(business.status)
-                    .replace("text-", "")
-                    .replace("dark:", ""),
+                  business.status, // Use business.status directly instead of getStatusColor
                   scale,
                   selectedBusiness?.place_id === business.place_id
                 )}
