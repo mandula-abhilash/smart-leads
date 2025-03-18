@@ -8,7 +8,11 @@ import {
   Marker,
 } from "@react-google-maps/api";
 import * as h3 from "h3-js";
-import BusinessSidebar from "./business-sidebar";
+import BusinessList from "./business/business-list";
+import BusinessDetails from "./business/business-details";
+import MapSearch from "./map-search";
+import { Button } from "./ui/button";
+import { MapIcon, Satellite, Globe, Mountain } from "lucide-react";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -20,6 +24,13 @@ const defaultCenter = {
   lat: 17.519330500446294,
   lng: 78.30199254778114,
 };
+
+const MAP_TYPES = [
+  { id: "roadmap", name: "Road Map", icon: MapIcon },
+  { id: "satellite", name: "Satellite", icon: Satellite },
+  { id: "hybrid", name: "Hybrid", icon: Globe },
+  { id: "terrain", name: "Terrain", icon: Mountain },
+];
 
 const options = {
   disableDefaultUI: true,
@@ -51,6 +62,7 @@ export default function Map() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [mapType, setMapType] = useState("hybrid");
   const [zoom, setZoom] = useState(15);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const generateHexagons = useCallback((bounds) => {
     if (!bounds) return [];
@@ -126,13 +138,6 @@ export default function Map() {
     [map]
   );
 
-  const handleCloseSidebar = useCallback(() => {
-    setSelectedHexagon(null);
-    setBusinesses(null);
-    setAreaAnalysis(null);
-    setSelectedBusiness(null);
-  }, []);
-
   const handleMarkerClick = useCallback(
     (business) => {
       setSelectedBusiness(business);
@@ -175,65 +180,99 @@ export default function Map() {
   }
 
   return (
-    <div className="relative w-full h-screen">
-      <BusinessSidebar
-        businesses={businesses}
-        areaAnalysis={areaAnalysis}
-        isLoading={isLoading}
-        onClose={handleCloseSidebar}
-        selectedBusiness={selectedBusiness}
-        onBusinessClick={handleMarkerClick}
-        onSelectLocation={handleLocationSelect}
-        onMapTypeChange={handleMapTypeChange}
-        activeMapType={mapType}
-      />
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        zoom={zoom}
-        center={defaultCenter}
-        options={{
-          ...options,
-          mapTypeId: mapType,
-        }}
-        onLoad={handleMapLoad}
-        onIdle={handleMapIdle}
-      >
-        {hexagons.map((hexagon) => (
-          <Polygon
-            key={hexagon.id}
-            paths={hexagon.paths}
-            onClick={() => handleHexagonClick(hexagon)}
-            options={{
-              fillColor: hexagon.completed ? "#10b981" : "#2563eb",
-              fillOpacity: selectedHexagon?.id === hexagon.id ? 0.25 : 0.08,
-              strokeColor:
-                selectedHexagon?.id === hexagon.id
-                  ? "#000000"
-                  : hexagon.completed
-                  ? "#10b981"
-                  : "#2563eb",
-              strokeWeight: selectedHexagon?.id === hexagon.id ? 4 : 3,
-              strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.8,
-              clickable: true,
-            }}
+    <div className="relative w-full h-screen flex">
+      {/* Left Sidebar - Business List */}
+      <div className="w-80 h-full border-r bg-background/95 backdrop-blur-sm flex flex-col z-20">
+        {/* Map Controls */}
+        <div className="border-b p-4 space-y-4">
+          <MapSearch onSelectLocation={handleLocationSelect} />
+          <div className="flex gap-2">
+            {MAP_TYPES.map((type) => {
+              const Icon = type.icon;
+              return (
+                <Button
+                  key={type.id}
+                  onClick={() => handleMapTypeChange(type.id)}
+                  variant={mapType === type.id ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Business List */}
+        {businesses && (
+          <BusinessList
+            businesses={businesses}
+            selectedBusiness={selectedBusiness}
+            onBusinessClick={handleMarkerClick}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
-        ))}
-        {businesses?.map((business) => (
-          <Marker
-            key={business.place_id}
-            position={{
-              lat: business.location.lat,
-              lng: business.location.lng,
-            }}
-            onClick={() => handleMarkerClick(business)}
-            animation={
-              selectedBusiness?.place_id === business.place_id
-                ? window.google.maps.Animation.BOUNCE
-                : null
-            }
-          />
-        ))}
-      </GoogleMap>
+        )}
+      </div>
+
+      {/* Map */}
+      <div className="flex-1 relative">
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          zoom={zoom}
+          center={defaultCenter}
+          options={{
+            ...options,
+            mapTypeId: mapType,
+          }}
+          onLoad={handleMapLoad}
+          onIdle={handleMapIdle}
+        >
+          {hexagons.map((hexagon) => (
+            <Polygon
+              key={hexagon.id}
+              paths={hexagon.paths}
+              onClick={() => handleHexagonClick(hexagon)}
+              options={{
+                fillColor: hexagon.completed ? "#10b981" : "#2563eb",
+                fillOpacity: selectedHexagon?.id === hexagon.id ? 0.25 : 0.08,
+                strokeColor:
+                  selectedHexagon?.id === hexagon.id
+                    ? "#000000"
+                    : hexagon.completed
+                    ? "#10b981"
+                    : "#2563eb",
+                strokeWeight: selectedHexagon?.id === hexagon.id ? 4 : 3,
+                strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.8,
+                clickable: true,
+              }}
+            />
+          ))}
+          {businesses?.map((business) => (
+            <Marker
+              key={business.place_id}
+              position={{
+                lat: business.location.lat,
+                lng: business.location.lng,
+              }}
+              onClick={() => handleMarkerClick(business)}
+              animation={
+                selectedBusiness?.place_id === business.place_id
+                  ? window.google.maps.Animation.BOUNCE
+                  : null
+              }
+            />
+          ))}
+        </GoogleMap>
+      </div>
+
+      {/* Right Panel - Business Details */}
+      {businesses && (
+        <div className="w-[480px] h-full border-l bg-background/95 backdrop-blur-sm z-20">
+          <BusinessDetails business={selectedBusiness} />
+        </div>
+      )}
     </div>
   );
 }
