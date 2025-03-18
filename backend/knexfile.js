@@ -4,11 +4,11 @@ export default {
   development: {
     client: "postgresql",
     connection: {
-      host: process.env.DB_HOST || "localhost",
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || "visdak_smart_leads",
-      user: process.env.DB_USER || "postgres",
-      password: process.env.DB_PASSWORD || "postgres",
+      host: process.env.PG_HOST || "localhost",
+      port: process.env.PG_PORT || 5432,
+      database: process.env.PG_DATABASE || "visdak_smart_leads",
+      user: process.env.PG_USER || "postgres",
+      password: process.env.PG_PASSWORD || "postgres",
     },
     pool: {
       min: 2,
@@ -23,11 +23,11 @@ export default {
   production: {
     client: "postgresql",
     connection: {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
+      host: process.env.PG_HOST,
+      port: process.env.PG_PORT,
+      database: process.env.PG_DATABASE,
+      user: process.env.PG_USER,
+      password: process.env.PG_PASSWORD,
       ssl: { rejectUnauthorized: false },
     },
     pool: {
