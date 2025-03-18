@@ -56,7 +56,7 @@ const createMarkerIcon = (status, scale = 1, selected = false) => {
     path: google.maps.SymbolPath.CIRCLE,
     fillColor: getStatusColor(status),
     fillOpacity: 1,
-    strokeWeight: selected ? 2 : 1,
+    strokeWeight: 2,
     strokeColor: "#FFFFFF",
     scale: selected ? 10 : 8,
   };

@@ -37,7 +37,7 @@ export function getStatusIcon(status) {
 export function getStatusColor(status) {
   switch (status) {
     case "new":
-      return "#FFFFFF"; // white
+      return "#000000"; // black
     case "converted":
       return "#22C55E"; // green-600
     case "contacted":
@@ -51,7 +51,7 @@ export function getStatusColor(status) {
     case "follow_up":
       return "#D97706"; // amber-600
     default:
-      return "#FFFFFF"; // white (default)
+      return "#000000"; // black (default)
   }
 }
 
@@ -59,7 +59,7 @@ export function getStatusColor(status) {
 export function getStatusColorClass(status) {
   switch (status) {
     case "new":
-      return "text-white dark:text-white";
+      return "text-black dark:text-black";
     case "converted":
       return "text-green-600 dark:text-green-500";
     case "contacted":
@@ -73,7 +73,7 @@ export function getStatusColorClass(status) {
     case "follow_up":
       return "text-amber-600 dark:text-amber-500";
     default:
-      return "text-white dark:text-white";
+      return "text-black dark:text-black";
   }
 }
 
