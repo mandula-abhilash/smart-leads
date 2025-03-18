@@ -26,22 +26,6 @@ export default function BusinessCard({ business, isSelected, onClick }) {
       } shadow-sm backdrop-blur-sm`}
     >
       <div className="p-3">
-        {/* Opportunity Score */}
-        <div className="mb-2">
-          <div className="w-full bg-gray-200 rounded-full h-1">
-            <div
-              className={`h-1 rounded-full ${
-                analysis.opportunityScore > 70
-                  ? "bg-green-600"
-                  : analysis.opportunityScore > 40
-                  ? "bg-amber-500"
-                  : "bg-red-500"
-              }`}
-              style={{ width: `${analysis.opportunityScore}%` }}
-            />
-          </div>
-        </div>
-
         {/* Business Name */}
         <h4 className="font-medium text-base group-hover:text-primary transition-colors mb-2 line-clamp-1">
           {name}
@@ -80,6 +64,22 @@ export default function BusinessCard({ business, isSelected, onClick }) {
               +{types.length - 2}
             </span>
           )}
+        </div>
+
+        {/* Opportunity Score */}
+        <div className="mt-2">
+          <div className="w-full bg-gray-200 rounded-full h-1">
+            <div
+              className={`h-1 rounded-full ${
+                analysis.opportunityScore > 70
+                  ? "bg-green-600"
+                  : analysis.opportunityScore > 40
+                  ? "bg-amber-500"
+                  : "bg-red-500"
+              }`}
+              style={{ width: `${analysis.opportunityScore}%` }}
+            />
+          </div>
         </div>
       </div>
     </div>
