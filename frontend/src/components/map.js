@@ -13,7 +13,7 @@ import BusinessDetails from "./business/business-details";
 import HexagonDetails from "./map/hexagon-details";
 import MapSearch from "./map-search";
 import { Button } from "./ui/button";
-import { MapIcon, Satellite, Globe, Mountain } from "lucide-react";
+import { MapIcon, Satellite, Globe, Mountain, Store } from "lucide-react";
 import { getStatusIcon, getStatusColor } from "./business/business-status";
 import { useBusinessContext } from "@/contexts/BusinessContext";
 
@@ -50,6 +50,17 @@ const options = {
   ],
 };
 
+// Create SVG marker path for a store/business icon
+const createMarkerIcon = (color, scale = 1, selected = false) => ({
+  path: "M12 0C7.58 0 4 3.58 4 8c0 5.76 7.44 14.32 7.75 14.71.15.19.38.29.62.29s.47-.1.62-.29C13.56 22.32 21 13.76 21 8c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z",
+  fillColor: color,
+  fillOpacity: 1,
+  strokeWeight: selected ? 2 : 1,
+  strokeColor: "#FFFFFF",
+  scale: selected ? scale * 1.5 : scale,
+  anchor: new google.maps.Point(12, 24),
+});
+
 export default function Map() {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -77,6 +88,7 @@ export default function Map() {
 
   // Animation interval ref
   const animationRef = useRef(null);
+  const markerScaleRef = useRef(1);
 
   // Cleanup animation on unmount
   useEffect(() => {
@@ -182,7 +194,7 @@ export default function Map() {
 
   const animateMarker = useCallback((business) => {
     setActiveMarker(business.place_id);
-    let scale = 8;
+    markerScaleRef.current = 1;
     let increasing = true;
 
     // Clear any existing animation
@@ -193,19 +205,19 @@ export default function Map() {
     // Create new animation
     animationRef.current = setInterval(() => {
       if (increasing) {
-        scale += 1;
-        if (scale >= 12) {
+        markerScaleRef.current += 0.1;
+        if (markerScaleRef.current >= 1.5) {
           increasing = false;
         }
       } else {
-        scale -= 1;
-        if (scale <= 8) {
+        markerScaleRef.current -= 0.1;
+        if (markerScaleRef.current <= 1) {
           increasing = true;
         }
       }
       setActiveMarker((current) =>
         current === business.place_id
-          ? `${business.place_id}-${scale}`
+          ? `${business.place_id}-${markerScaleRef.current}`
           : current
       );
     }, 50);
@@ -227,10 +239,9 @@ export default function Map() {
           lng: business.location.lng,
         });
 
-        const targetZoom = 17;
-        if (map.getZoom() < targetZoom) {
-          map.setZoom(targetZoom);
-        }
+        // Set a higher zoom level (19 is typically building-level detail)
+        const targetZoom = 19;
+        map.setZoom(targetZoom);
 
         // Animate the marker
         animateMarker(business);
@@ -360,10 +371,10 @@ export default function Map() {
           {markers.map((business) => {
             const isActive = activeMarker?.startsWith(business.place_id);
             const scale = isActive
-              ? parseInt(activeMarker.split("-")[1]) || 8
+              ? parseFloat(activeMarker.split("-")[1]) || 1
               : selectedBusiness?.place_id === business.place_id
-              ? 10
-              : 8;
+              ? 1.2
+              : 1;
 
             return (
               <Marker
@@ -373,14 +384,13 @@ export default function Map() {
                   lng: business.location.lng,
                 }}
                 onClick={() => handleMarkerClick(business)}
-                icon={{
-                  path: window.google.maps.SymbolPath.CIRCLE,
+                icon={createMarkerIcon(
+                  getStatusColor(business.status)
+                    .replace("text-", "")
+                    .replace("dark:", ""),
                   scale,
-                  fillColor: getStatusColor(business.status),
-                  fillOpacity: 1,
-                  strokeWeight: 2,
-                  strokeColor: "#ffffff",
-                }}
+                  selectedBusiness?.place_id === business.place_id
+                )}
               />
             );
           })}

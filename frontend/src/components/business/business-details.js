@@ -111,7 +111,7 @@ export default function BusinessDetails({ business, isLoading, businesses }) {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border-b p-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold">{business.name}</h2>
+          <h2 className="text-lg font-semibold">{business.name}</h2>
           <BusinessStatus
             status={business.status}
             placeId={business.place_id}
