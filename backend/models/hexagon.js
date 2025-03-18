@@ -54,7 +54,23 @@ export async function updateHexagonStatus(hexagonId, status) {
 }
 
 export async function getAllHexagonIds() {
-  return db("vd_sw_hexagons")
-    .select("hexagon_id")
-    .then((hexagons) => hexagons.map((h) => h.hexagon_id));
+  const hexagons = await db("vd_sw_hexagons").select(
+    "hexagon_id",
+    "no_businesses_found"
+  );
+
+  const hexagonIds = [];
+  const noBusinessHexagonIds = [];
+
+  hexagons.forEach((hexagon) => {
+    hexagonIds.push(hexagon.hexagon_id);
+    if (hexagon.no_businesses_found) {
+      noBusinessHexagonIds.push(hexagon.hexagon_id);
+    }
+  });
+
+  return {
+    hexagonIds,
+    noBusinessHexagonIds,
+  };
 }

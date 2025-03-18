@@ -4,8 +4,8 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
+  useEffect,
 } from "react";
 
 const BACKEND_URL =
@@ -20,6 +20,7 @@ export function BusinessProvider({ children }) {
   const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [existingHexagons, setExistingHexagons] = useState(new Set());
+  const [noBusinessHexagons, setNoBusinessHexagons] = useState(new Set());
 
   const fetchExistingHexagons = useCallback(async () => {
     try {
@@ -27,8 +28,9 @@ export function BusinessProvider({ children }) {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const hexagonIds = await response.json();
-      setExistingHexagons(new Set(hexagonIds));
+      const data = await response.json();
+      setExistingHexagons(new Set(data.hexagonIds));
+      setNoBusinessHexagons(new Set(data.noBusinessHexagonIds));
     } catch (error) {
       console.error("Error fetching existing hexagons:", error);
     }
@@ -66,8 +68,11 @@ export function BusinessProvider({ children }) {
       setBusinesses(data.businesses || []);
       setAreaAnalysis(data.areaAnalysis);
 
-      // Add this hexagon to the set of existing hexagons
+      // Update hexagon status in our sets
       setExistingHexagons((prev) => new Set([...prev, hexagonId]));
+      if (data.businesses?.length === 0) {
+        setNoBusinessHexagons((prev) => new Set([...prev, hexagonId]));
+      }
 
       return data;
     } catch (error) {
@@ -125,8 +130,11 @@ export function BusinessProvider({ children }) {
       setBusinesses(data.businesses || []);
       setAreaAnalysis(data.areaAnalysis);
 
-      // Add this hexagon to the set of existing hexagons
+      // Update hexagon status in our sets
       setExistingHexagons((prev) => new Set([...prev, hexagonId]));
+      if (data.businesses?.length === 0) {
+        setNoBusinessHexagons((prev) => new Set([...prev, hexagonId]));
+      }
 
       return data;
     } catch (error) {
@@ -211,6 +219,7 @@ export function BusinessProvider({ children }) {
     selectedHexagon,
     isLoading,
     existingHexagons,
+    noBusinessHexagons,
     setSelectedBusiness,
     fetchHexagonBusinesses,
     createHexagonBusinesses,

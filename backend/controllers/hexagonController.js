@@ -191,8 +191,8 @@ export async function updateBusinessStatus(req, res) {
 
 export async function getExistingHexagons(req, res) {
   try {
-    const hexagonIds = await getAllHexagonIds();
-    res.json(hexagonIds);
+    const { hexagonIds, noBusinessHexagonIds } = await getAllHexagonIds();
+    res.json({ hexagonIds, noBusinessHexagonIds });
   } catch (error) {
     console.error("Error fetching existing hexagons:", error);
     res.status(500).json({

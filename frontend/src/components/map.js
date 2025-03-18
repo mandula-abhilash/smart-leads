@@ -75,6 +75,7 @@ export default function Map() {
     selectedHexagon,
     isLoading,
     existingHexagons,
+    noBusinessHexagons,
     setSelectedBusiness,
     fetchHexagonBusinesses,
     clearSelection,
@@ -351,6 +352,7 @@ export default function Map() {
         >
           {hexagons.map((hexagon) => {
             const isExisting = existingHexagons.has(hexagon.id);
+            const hasNoBusinesses = noBusinessHexagons.has(hexagon.id);
             const isSelected = selectedHexagon?.hexagon_id === hexagon.id;
 
             return (
@@ -361,12 +363,16 @@ export default function Map() {
                 options={{
                   fillColor: isSelected
                     ? "#3b82f6"
+                    : hasNoBusinesses
+                    ? "#ef4444"
                     : isExisting
                     ? "#22c55e"
                     : "#6366f1",
                   fillOpacity: 0.2,
                   strokeColor: isSelected
                     ? "#2563eb"
+                    : hasNoBusinesses
+                    ? "#dc2626"
                     : isExisting
                     ? "#16a34a"
                     : "#4f46e5",
