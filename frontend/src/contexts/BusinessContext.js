@@ -148,7 +148,7 @@ export function BusinessProvider({ children }) {
         return updatedBusiness;
       } catch (error) {
         console.error("Error updating business status:", error);
-        return null;
+        throw error;
       }
     },
     [selectedBusiness]

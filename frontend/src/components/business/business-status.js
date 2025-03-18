@@ -60,7 +60,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
 
     setIsUpdating(true);
     try {
-      await onStatusChange({ place_id: placeId, status: newStatus });
+      await onStatusChange({ status: newStatus, place_id: placeId });
     } catch (error) {
       console.error("Error updating business status:", error);
     } finally {
@@ -68,7 +68,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
     }
   };
 
-  const CurrentIcon = getStatusIcon(status);
+  const StatusIcon = getStatusIcon(status);
 
   return (
     <Select
@@ -81,7 +81,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
           {isUpdating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <CurrentIcon className={`h-4 w-4 ${getStatusColor(status)}`} />
+            <StatusIcon className={`h-4 w-4 ${getStatusColor(status)}`} />
           )}
           <SelectValue placeholder="Select status" />
         </div>

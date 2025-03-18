@@ -102,7 +102,7 @@ export default function BusinessDetails({ business, isLoading, businesses }) {
     return <BusinessDetailsSkeleton />;
   }
 
-  if (!business) {
+  if (!business || !business.analysis) {
     return <EmptyState />;
   }
 

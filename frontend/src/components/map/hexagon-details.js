@@ -60,6 +60,77 @@ function EmptyState() {
   );
 }
 
+function BusinessCard({ business, isSelected, onClick }) {
+  if (!business || !business.analysis) return null;
+
+  return (
+    <div
+      className={`bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg relative ${
+        isSelected ? "opacity-50" : ""
+      }`}
+      onClick={onClick}
+    >
+      {isSelected && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-lg">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      )}
+      <div className="flex items-start justify-between">
+        <div>
+          <h4 className="font-medium hover:text-primary transition-colors">
+            {business.name}
+          </h4>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {business.types?.slice(0, 3).map((type) => (
+              <span
+                key={type}
+                className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
+              >
+                {formatType(type)}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Opportunity Score */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <TrendingUp className="h-4 w-4" />
+            <span>Opportunity Score</span>
+          </div>
+          <span
+            className={`text-sm font-medium ${
+              business.analysis.opportunityScore > 70
+                ? "text-green-600"
+                : business.analysis.opportunityScore > 40
+                ? "text-amber-600"
+                : "text-red-600"
+            }`}
+          >
+            {business.analysis.opportunityScore}%
+          </span>
+        </div>
+        <div className="w-full bg-zinc-100 dark:bg-zinc-700 rounded-full h-1.5">
+          <div
+            className={`h-1.5 rounded-full ${
+              business.analysis.opportunityScore > 70
+                ? "bg-green-600"
+                : business.analysis.opportunityScore > 40
+                ? "bg-amber-500"
+                : "bg-red-500"
+            }`}
+            style={{
+              width: `${business.analysis.opportunityScore}%`,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HexagonDetails({
   hexagon,
   businesses,
@@ -67,7 +138,6 @@ export default function HexagonDetails({
   onBusinessClick,
 }) {
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
-  const { setSelectedBusiness } = useBusinessContext();
 
   const handleBusinessClick = (business) => {
     setSelectedBusinessId(business.place_id);
@@ -126,73 +196,12 @@ export default function HexagonDetails({
                   <h3 className="text-lg font-semibold">Businesses</h3>
                   <div className="space-y-4">
                     {businesses.map((business) => (
-                      <div
+                      <BusinessCard
                         key={business.place_id}
-                        className={`bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg relative ${
-                          selectedBusinessId === business.place_id
-                            ? "opacity-50"
-                            : ""
-                        }`}
+                        business={business}
+                        isSelected={selectedBusinessId === business.place_id}
                         onClick={() => handleBusinessClick(business)}
-                      >
-                        {selectedBusinessId === business.place_id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-lg">
-                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                          </div>
-                        )}
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-medium hover:text-primary transition-colors">
-                              {business.name}
-                            </h4>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {business.types?.slice(0, 3).map((type) => (
-                                <span
-                                  key={type}
-                                  className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
-                                >
-                                  {formatType(type)}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Opportunity Score */}
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <TrendingUp className="h-4 w-4" />
-                              <span>Opportunity Score</span>
-                            </div>
-                            <span
-                              className={`text-sm font-medium ${
-                                business.analysis.opportunityScore > 70
-                                  ? "text-green-600"
-                                  : business.analysis.opportunityScore > 40
-                                  ? "text-amber-600"
-                                  : "text-red-600"
-                              }`}
-                            >
-                              {business.analysis.opportunityScore}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-zinc-100 dark:bg-zinc-700 rounded-full h-1.5">
-                            <div
-                              className={`h-1.5 rounded-full ${
-                                business.analysis.opportunityScore > 70
-                                  ? "bg-green-600"
-                                  : business.analysis.opportunityScore > 40
-                                  ? "bg-amber-500"
-                                  : "bg-red-500"
-                              }`}
-                              style={{
-                                width: `${business.analysis.opportunityScore}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      />
                     ))}
                   </div>
                 </div>
