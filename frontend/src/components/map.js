@@ -152,12 +152,40 @@ export default function Map() {
     setHexagons(newHexagons);
   }, [map, generateHexagons]);
 
-  const handleHexagonClick = useCallback((hexagon) => {
-    setSelectedHexagon(hexagon);
-    setBusinesses(null);
-    setAreaAnalysis(null);
-    setSelectedBusiness(null);
-  }, []);
+  const centerAndZoomOnHexagon = useCallback(
+    (hexagon) => {
+      if (!map) return;
+
+      // Calculate the bounds of the hexagon
+      const bounds = new window.google.maps.LatLngBounds();
+      hexagon.paths.forEach((point) => {
+        bounds.extend(new window.google.maps.LatLng(point.lat, point.lng));
+      });
+
+      // Center and zoom the map to fit the hexagon
+      map.fitBounds(bounds, {
+        padding: { top: 50, right: 50, bottom: 50, left: 50 },
+      });
+
+      // Set a minimum zoom level to prevent zooming in too close
+      const minZoom = 15;
+      if (map.getZoom() > minZoom) {
+        map.setZoom(minZoom);
+      }
+    },
+    [map]
+  );
+
+  const handleHexagonClick = useCallback(
+    (hexagon) => {
+      setSelectedHexagon(hexagon);
+      setBusinesses(null);
+      setAreaAnalysis(null);
+      setSelectedBusiness(null);
+      centerAndZoomOnHexagon(hexagon);
+    },
+    [centerAndZoomOnHexagon]
+  );
 
   const fetchBusinesses = useCallback(async () => {
     if (!selectedHexagon) return;
@@ -196,10 +224,17 @@ export default function Map() {
     (business) => {
       setSelectedBusiness(business);
       if (map) {
+        // Center the map on the business location with smooth animation
         map.panTo({
           lat: business.location.lat,
           lng: business.location.lng,
         });
+
+        // Zoom in slightly for better visibility
+        const targetZoom = 17;
+        if (map.getZoom() < targetZoom) {
+          map.setZoom(targetZoom);
+        }
       }
     },
     [map]
