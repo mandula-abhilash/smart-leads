@@ -86,7 +86,7 @@ function HexagonDetails({ hexagon, onFetchBusinesses, isLoading }) {
         </div>
 
         <Button
-          className="w-full cursor-pointer"
+          className="w-full"
           onClick={onFetchBusinesses}
           disabled={isLoading}
         >
@@ -236,7 +236,7 @@ export default function Map() {
   return (
     <div className="relative w-full h-screen flex overflow-hidden">
       {/* Left Sidebar - Hexagon Details or Business List */}
-      <div className="w-80 h-screen border-r bg-background/95 backdrop-blur-sm flex flex-col z-20">
+      <div className="w-[400px] h-screen border-r bg-background/95 backdrop-blur-sm flex flex-col z-20">
         {/* Map Controls */}
         <div className="border-b p-4 space-y-4 bg-background/50 backdrop-blur-sm">
           <MapSearch onSelectLocation={handleLocationSelect} />
@@ -265,15 +265,16 @@ export default function Map() {
             onFetchBusinesses={fetchBusinesses}
             isLoading={isLoading}
           />
-        ) : businesses ? (
+        ) : (
           <BusinessList
             businesses={businesses}
             selectedBusiness={selectedBusiness}
             onBusinessClick={handleMarkerClick}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            isLoading={isLoading}
           />
-        ) : null}
+        )}
       </div>
 
       {/* Map */}
@@ -329,8 +330,8 @@ export default function Map() {
 
       {/* Right Panel - Business Details */}
       {businesses && (
-        <div className="w-[480px] h-screen border-l bg-background/95 backdrop-blur-sm z-20">
-          <BusinessDetails business={selectedBusiness} />
+        <div className="w-[400px] h-screen border-l bg-background/95 backdrop-blur-sm z-20">
+          <BusinessDetails business={selectedBusiness} isLoading={isLoading} />
         </div>
       )}
     </div>

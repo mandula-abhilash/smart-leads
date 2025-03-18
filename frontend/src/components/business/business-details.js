@@ -8,6 +8,8 @@ import {
   Link as LinkIcon,
   DollarSign,
   AlertCircle,
+  Store,
+  Loader2,
 } from "lucide-react";
 import {
   Accordion,
@@ -27,13 +29,57 @@ function formatType(type) {
     .join(" ");
 }
 
-export default function BusinessDetails({ business }) {
-  if (!business) {
-    return (
-      <div className="h-full flex items-center justify-center text-muted-foreground">
-        Select a business to view details
+function BusinessDetailsSkeleton() {
+  return (
+    <div className="h-screen overflow-y-auto animate-pulse">
+      <div className="sticky top-0 z-10 bg-background/50 backdrop-blur-sm border-b p-6">
+        <div className="h-8 bg-muted rounded w-3/4 mb-3"></div>
+        <div className="h-4 bg-muted rounded w-1/2"></div>
       </div>
-    );
+
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-4 rounded-lg bg-muted/30">
+              <div className="h-4 bg-muted rounded w-24 mb-2"></div>
+              <div className="h-8 bg-muted rounded w-16"></div>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          <div className="h-6 bg-muted rounded w-32"></div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 rounded-lg bg-muted/30">
+              <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-muted rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center p-4 text-center">
+      <Store className="h-12 w-12 text-muted-foreground mb-4" />
+      <h3 className="text-lg font-medium mb-2">Select a Business</h3>
+      <p className="text-sm text-muted-foreground">
+        Click on a business from the list to view its details
+      </p>
+    </div>
+  );
+}
+
+export default function BusinessDetails({ business, isLoading }) {
+  if (isLoading) {
+    return <BusinessDetailsSkeleton />;
+  }
+
+  if (!business) {
+    return <EmptyState />;
   }
 
   return (
