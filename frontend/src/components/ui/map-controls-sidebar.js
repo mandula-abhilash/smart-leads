@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
+  CircleChevronLeft,
+  CircleChevronRight,
   Map as MapIcon,
   Satellite,
   Mountain,
@@ -34,7 +34,7 @@ export default function MapControlsSidebar({
 
   return (
     <div
-      className={`fixed left-0 top-0 h-screen bg-white/95 backdrop-blur-sm shadow-lg border-r border-gray-200 overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+      className={`fixed left-0 top-0 h-screen bg-white/95 backdrop-blur-sm shadow-lg border-r border-gray-200 overflow-visible z-20 transition-all duration-300 ease-in-out ${
         isExpanded ? "w-80" : "w-16"
       }`}
     >
@@ -42,12 +42,12 @@ export default function MapControlsSidebar({
         onClick={() => setIsExpanded(!isExpanded)}
         variant="outline"
         size="icon"
-        className="absolute -right-5 top-1/2 -translate-y-1/2 rounded-full w-10 h-10 bg-white shadow-lg border-gray-200 hover:bg-gray-50 hover:text-gray-900 cursor-pointer"
+        className="absolute right-0 translate-x-1/2 top-4 rounded-full w-8 h-8 bg-white shadow-lg border border-gray-200 hover:bg-gray-50 hover:text-gray-900 cursor-pointer z-30"
       >
         {isExpanded ? (
-          <ChevronLeft className="h-4 w-4" />
+          <CircleChevronLeft className="h-6 w-6" />
         ) : (
-          <ChevronRight className="h-4 w-4" />
+          <CircleChevronRight className="h-6 w-6" />
         )}
       </Button>
 
