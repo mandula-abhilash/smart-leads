@@ -25,12 +25,38 @@ export async function createBusiness(businessData) {
     status = "new",
   } = businessData;
 
-  // Ensure JSON fields are properly stringified
-  const jsonData = {
-    photos: Array.isArray(photos) ? JSON.stringify(photos) : null,
-    opening_hours: opening_hours ? JSON.stringify(opening_hours) : null,
-    reviews: Array.isArray(reviews) ? JSON.stringify(reviews) : null,
-    insights: insights ? JSON.stringify(insights) : null,
+  // Ensure proper stringification of JSON fields
+  const stringifyField = (field) => {
+    if (!field) return null;
+    if (typeof field === "string") return field; // Already a string
+    return JSON.stringify(field);
+  };
+
+  const businessRecord = {
+    place_id,
+    name,
+    formatted_address,
+    website,
+    formatted_phone_number,
+    rating,
+    user_ratings_total,
+    types,
+    business_status,
+    photos: stringifyField(photos),
+    icon,
+    url,
+    price_level,
+    opening_hours: stringifyField(opening_hours),
+    reviews: stringifyField(reviews),
+    geometry: db.raw("ST_SetSRID(ST_MakePoint(?, ?), 4326)", [
+      location.lng,
+      location.lat,
+    ]),
+    hexagon_id,
+    opportunity_score,
+    insights: stringifyField(insights),
+    priority,
+    status,
   };
 
   // Check if business already exists
@@ -43,28 +69,7 @@ export async function createBusiness(businessData) {
     return db("vd_sw_businesses")
       .where("place_id", place_id)
       .update({
-        name,
-        formatted_address,
-        website,
-        formatted_phone_number,
-        rating,
-        user_ratings_total,
-        types,
-        business_status,
-        photos: jsonData.photos,
-        icon,
-        url,
-        price_level,
-        opening_hours: jsonData.opening_hours,
-        reviews: jsonData.reviews,
-        geometry: db.raw("ST_SetSRID(ST_MakePoint(?, ?), 4326)", [
-          location.lng,
-          location.lat,
-        ]),
-        hexagon_id,
-        opportunity_score,
-        insights: jsonData.insights,
-        priority,
+        ...businessRecord,
         updated_at: db.fn.now(),
       })
       .returning("*");
@@ -73,30 +78,7 @@ export async function createBusiness(businessData) {
   // Create new business
   return db("vd_sw_businesses")
     .insert({
-      place_id,
-      name,
-      formatted_address,
-      website,
-      formatted_phone_number,
-      rating,
-      user_ratings_total,
-      types,
-      business_status,
-      photos: jsonData.photos,
-      icon,
-      url,
-      price_level,
-      opening_hours: jsonData.opening_hours,
-      reviews: jsonData.reviews,
-      geometry: db.raw("ST_SetSRID(ST_MakePoint(?, ?), 4326)", [
-        location.lng,
-        location.lat,
-      ]),
-      hexagon_id,
-      opportunity_score,
-      insights: jsonData.insights,
-      priority,
-      status,
+      ...businessRecord,
       created_at: db.fn.now(),
       updated_at: db.fn.now(),
     })
@@ -114,31 +96,38 @@ export async function getBusinessesByHexagon(hexagonId) {
     .then((businesses) =>
       businesses.map((business) => {
         // Parse JSON fields safely
-        const safeParseJSON = (str) => {
-          if (!str) return null;
+        const parseField = (field) => {
+          if (!field) return null;
           try {
-            return JSON.parse(str);
+            // Check if already parsed
+            if (typeof field === "object") return field;
+            return JSON.parse(field);
           } catch (error) {
             console.error("Error parsing JSON field:", error);
             return null;
           }
         };
 
-        // Extract lat/lng from geometry
+        // Extract lat/lng and create location object
         const lat = parseFloat(business.lat);
         const lng = parseFloat(business.lng);
 
-        return {
+        // Create a clean business object
+        const cleanBusiness = {
           ...business,
-          photos: safeParseJSON(business.photos),
-          opening_hours: safeParseJSON(business.opening_hours),
-          reviews: safeParseJSON(business.reviews),
-          insights: safeParseJSON(business.insights),
-          location: {
-            lat,
-            lng,
-          },
+          photos: parseField(business.photos),
+          opening_hours: parseField(business.opening_hours),
+          reviews: parseField(business.reviews),
+          insights: parseField(business.insights),
+          location: { lat, lng },
         };
+
+        // Remove unnecessary fields
+        delete cleanBusiness.lat;
+        delete cleanBusiness.lng;
+        delete cleanBusiness.geometry;
+
+        return cleanBusiness;
       })
     );
 }
@@ -152,23 +141,43 @@ export async function getBusinessById(placeId) {
     )
     .where("place_id", placeId)
     .first()
-    .then((business) =>
-      business
-        ? {
-            ...business,
-            photos: business.photos ? JSON.parse(business.photos) : null,
-            opening_hours: business.opening_hours
-              ? JSON.parse(business.opening_hours)
-              : null,
-            reviews: business.reviews ? JSON.parse(business.reviews) : null,
-            insights: business.insights ? JSON.parse(business.insights) : null,
-            location: {
-              lat: parseFloat(business.lat),
-              lng: parseFloat(business.lng),
-            },
-          }
-        : null
-    );
+    .then((business) => {
+      if (!business) return null;
+
+      // Parse JSON fields safely
+      const parseField = (field) => {
+        if (!field) return null;
+        try {
+          // Check if already parsed
+          if (typeof field === "object") return field;
+          return JSON.parse(field);
+        } catch (error) {
+          console.error("Error parsing JSON field:", error);
+          return null;
+        }
+      };
+
+      // Extract lat/lng and create location object
+      const lat = parseFloat(business.lat);
+      const lng = parseFloat(business.lng);
+
+      // Create a clean business object
+      const cleanBusiness = {
+        ...business,
+        photos: parseField(business.photos),
+        opening_hours: parseField(business.opening_hours),
+        reviews: parseField(business.reviews),
+        insights: parseField(business.insights),
+        location: { lat, lng },
+      };
+
+      // Remove unnecessary fields
+      delete cleanBusiness.lat;
+      delete cleanBusiness.lng;
+      delete cleanBusiness.geometry;
+
+      return cleanBusiness;
+    });
 }
 
 export async function updateBusinessStatus(placeId, status) {

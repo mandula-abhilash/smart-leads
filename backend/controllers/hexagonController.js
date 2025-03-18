@@ -92,7 +92,21 @@ export async function createHexagonBusinesses(req, res) {
             hexagon_id: hexagonId,
             status: "new", // Default status for new businesses
           });
-          return result;
+
+          // Transform geometry to location
+          if (result) {
+            const lat = parseFloat(result.lat);
+            const lng = parseFloat(result.lng);
+            return {
+              ...result,
+              location: { lat, lng },
+              // Remove geometry and lat/lng fields
+              geometry: undefined,
+              lat: undefined,
+              lng: undefined,
+            };
+          }
+          return null;
         } catch (error) {
           console.error(`Error saving business ${business.place_id}:`, error);
           return null;

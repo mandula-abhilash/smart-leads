@@ -117,11 +117,15 @@ export const fetchBusinesses = async (req, res) => {
 
         if (!details) {
           // If details fetch failed, return basic info from nearby search
+          const location = {
+            lat: place.geometry.location.lat,
+            lng: place.geometry.location.lng,
+          };
           return {
             place_id: place.place_id,
             name: place.name,
-            address: place.vicinity,
-            location: place.geometry.location,
+            formatted_address: place.vicinity,
+            location,
             rating: place.rating,
             user_ratings_total: place.user_ratings_total,
             types: place.types.filter((type) => ALLOWED_TYPES.includes(type)),
@@ -134,13 +138,17 @@ export const fetchBusinesses = async (req, res) => {
         }
 
         // Return enhanced business details
+        const location = {
+          lat: details.geometry.location.lat,
+          lng: details.geometry.location.lng,
+        };
         return {
           place_id: place.place_id,
           name: details.name,
-          address: details.formatted_address,
-          phone: details.formatted_phone_number,
+          formatted_address: details.formatted_address,
+          formatted_phone_number: details.formatted_phone_number,
           website: details.website,
-          location: details.geometry.location,
+          location,
           rating: details.rating,
           user_ratings_total: details.user_ratings_total,
           types: details.types.filter((type) => ALLOWED_TYPES.includes(type)),
@@ -151,7 +159,7 @@ export const fetchBusinesses = async (req, res) => {
           icon: details.icon,
           opening_hours: details.opening_hours,
           price_level: details.price_level,
-          google_maps_url: details.url,
+          url: details.url,
           reviews: details.reviews,
         };
       })

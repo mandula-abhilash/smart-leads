@@ -76,15 +76,20 @@ export default function Map() {
 
   // Update markers whenever businesses change
   useEffect(() => {
-    if (businesses && businesses.length > 0) {
-      const validBusinesses = businesses.filter(
-        (business) => business.location?.lat && business.location?.lng
-      );
+    if (businesses && Array.isArray(businesses)) {
+      const validBusinesses = businesses.filter((business) => {
+        return (
+          business &&
+          business.location &&
+          typeof business.location.lat === "number" &&
+          typeof business.location.lng === "number"
+        );
+      });
       setMarkers(validBusinesses);
     } else {
       setMarkers([]);
     }
-  }, [businesses]);
+  }, [businesses, selectedHexagon?.hexagon_id]);
 
   const generateHexagons = useCallback((bounds) => {
     if (!bounds) return [];
