@@ -1,6 +1,6 @@
 export async function up(knex) {
   // Create hexagons table
-  await knex.schema.createTable("hexagons", (table) => {
+  await knex.schema.createTable("vd_sw_hexagons", (table) => {
     table.increments("id").primary();
     table.string("hexagon_id").notNullable().unique();
     table.boolean("businesses_fetched").notNullable().defaultTo(false);
@@ -10,11 +10,11 @@ export async function up(knex) {
     table.timestamps(true, true);
 
     // Add spatial index
-    table.index(["geometry"], "idx_hexagons_geometry", "GIST");
+    table.index(["geometry"], "idx_vd_sw_hexagons_geometry", "GIST");
   });
 
   // Create businesses table
-  await knex.schema.createTable("businesses", (table) => {
+  await knex.schema.createTable("vd_sw_businesses", (table) => {
     table.increments("id").primary();
     table.string("place_id").notNullable().unique();
     table.string("name").notNullable();
@@ -55,18 +55,18 @@ export async function up(knex) {
     table
       .foreign("hexagon_id")
       .references("hexagon_id")
-      .inTable("hexagons")
+      .inTable("vd_sw_hexagons")
       .onDelete("CASCADE");
     table.timestamps(true, true);
 
     // Add spatial index
-    table.index(["geometry"], "idx_businesses_geometry", "GIST");
+    table.index(["geometry"], "idx_vd_sw_businesses_geometry", "GIST");
     // Add index for common queries
     table.index(["status", "priority"]);
   });
 }
 
 export async function down(knex) {
-  await knex.schema.dropTableIfExists("businesses");
-  await knex.schema.dropTableIfExists("hexagons");
+  await knex.schema.dropTableIfExists("vd_sw_businesses");
+  await knex.schema.dropTableIfExists("vd_sw_hexagons");
 }

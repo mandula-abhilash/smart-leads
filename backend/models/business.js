@@ -24,7 +24,7 @@ export async function createBusiness(businessData) {
     priority,
   } = businessData;
 
-  return db("businesses")
+  return db("vd_sw_businesses")
     .insert({
       place_id,
       name,
@@ -56,20 +56,20 @@ export async function createBusiness(businessData) {
 }
 
 export async function getBusinessesByHexagon(hexagonId) {
-  return db("businesses")
+  return db("vd_sw_businesses")
     .select("*", db.raw("ST_AsGeoJSON(geometry) as geometry"))
     .where("hexagon_id", hexagonId);
 }
 
 export async function getBusinessById(placeId) {
-  return db("businesses")
+  return db("vd_sw_businesses")
     .select("*", db.raw("ST_AsGeoJSON(geometry) as geometry"))
     .where("place_id", placeId)
     .first();
 }
 
 export async function updateBusinessStatus(placeId, status) {
-  return db("businesses").where("place_id", placeId).update({
+  return db("vd_sw_businesses").where("place_id", placeId).update({
     status,
     updated_at: db.fn.now(),
   });

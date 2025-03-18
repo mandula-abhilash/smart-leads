@@ -3,7 +3,7 @@ import db from "../db/index.js";
 export async function createHexagon(hexagonData) {
   const { hexagon_id, geometry, center } = hexagonData;
 
-  return db("hexagons")
+  return db("vd_sw_hexagons")
     .insert({
       hexagon_id,
       geometry: db.raw("ST_GeomFromGeoJSON(?)", [JSON.stringify(geometry)]),
@@ -15,11 +15,11 @@ export async function createHexagon(hexagonData) {
 }
 
 export async function getHexagonById(hexagonId) {
-  return db("hexagons").where("hexagon_id", hexagonId).first();
+  return db("vd_sw_hexagons").where("hexagon_id", hexagonId).first();
 }
 
 export async function updateHexagonStatus(hexagonId, status) {
-  return db("hexagons").where("hexagon_id", hexagonId).update({
+  return db("vd_sw_hexagons").where("hexagon_id", hexagonId).update({
     businesses_fetched: status.businesses_fetched,
     no_businesses_found: status.no_businesses_found,
     updated_at: db.fn.now(),
@@ -29,7 +29,7 @@ export async function updateHexagonStatus(hexagonId, status) {
 export async function getHexagonsInBounds(bounds) {
   const { north, south, east, west } = bounds;
 
-  return db("hexagons")
+  return db("vd_sw_hexagons")
     .select(
       "hexagon_id",
       "businesses_fetched",
