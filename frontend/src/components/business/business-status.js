@@ -69,6 +69,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
   };
 
   const StatusIcon = getStatusIcon(status);
+  const currentOption = STATUS_OPTIONS.find((opt) => opt.value === status);
 
   return (
     <Select
@@ -83,7 +84,9 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
           ) : (
             <StatusIcon className={`h-4 w-4 ${getStatusColor(status)}`} />
           )}
-          <SelectValue placeholder="Select status" />
+          <SelectValue placeholder="Select status">
+            {currentOption?.label}
+          </SelectValue>
         </div>
       </SelectTrigger>
       <SelectContent>
