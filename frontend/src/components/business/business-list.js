@@ -49,8 +49,17 @@ export default function BusinessList({
 
   return (
     <div className="flex flex-col h-[calc(100vh-116px)]">
-      {/* Search */}
+      {/* Header with Business Count */}
       <div className="p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+        <h2 className="text-lg font-semibold mb-3">
+          {isLoading ? (
+            <div className="h-7 bg-muted rounded w-48 animate-pulse" />
+          ) : businesses ? (
+            `${filteredBusinesses.length} Businesses Found`
+          ) : (
+            "Search Businesses"
+          )}
+        </h2>
         <div className="relative">
           <Input
             placeholder="Search businesses..."
