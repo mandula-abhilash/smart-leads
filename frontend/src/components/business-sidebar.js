@@ -13,23 +13,23 @@ import {
   Filter,
   Search,
 } from "lucide-react";
-import { Button } from "./button";
-import { Label } from "./label";
+import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./select";
-import { Switch } from "./switch";
+} from "./ui/select";
+import { Switch } from "./ui/switch";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "./accordion";
-import { Input } from "./input";
+} from "./ui/accordion";
+import { Input } from "./ui/input";
 
 function formatType(type) {
   return type

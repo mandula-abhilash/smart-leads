@@ -9,8 +9,8 @@ import {
   Mountain,
   Globe,
 } from "lucide-react";
-import { Button } from "./button";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
+import { Button } from "./ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import MapSearch from "./map-search";
 
 const MAP_TYPES = [

@@ -8,8 +8,8 @@ import {
   Marker,
 } from "@react-google-maps/api";
 import * as h3 from "h3-js";
-import BusinessSidebar from "./ui/business-sidebar";
-import MapControlsSidebar from "./ui/map-controls-sidebar";
+import BusinessSidebar from "./business-sidebar";
+import MapControlsSidebar from "./map-controls-sidebar";
 
 const libraries = ["places"];
 const mapContainerStyle = {
