@@ -15,7 +15,7 @@ export default {
       max: 10,
     },
     migrations: {
-      tableName: "knex_migrations",
+      tableName: "vd_sw_knex_migrations",
       directory: "./migrations",
     },
   },
@@ -35,7 +35,7 @@ export default {
       max: 10,
     },
     migrations: {
-      tableName: "knex_migrations",
+      tableName: "vd_sw_knex_migrations",
       directory: "./migrations",
     },
   },
