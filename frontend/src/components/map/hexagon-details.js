@@ -15,21 +15,24 @@ function formatType(type) {
 
 function HexagonDetailsSkeleton() {
   return (
-    <div className="animate-pulse h-[calc(100vh-116px)]">
+    <div className="animate-pulse h-[calc(100vh-116px)] bg-zinc-50/50 dark:bg-zinc-900/50">
       <div className="p-6 space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-6 w-6 bg-muted rounded" />
           <div className="h-8 bg-muted rounded w-48" />
         </div>
 
-        <div className="bg-muted/30 p-4 rounded-lg space-y-3 shadow-md">
+        <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 shadow-md">
           <div className="h-4 bg-muted rounded w-32" />
           <div className="h-4 bg-muted rounded w-48" />
         </div>
 
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-card p-4 rounded-lg space-y-3 shadow-md">
+            <div
+              key={i}
+              className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 shadow-md"
+            >
               <div className="flex justify-between">
                 <div className="h-5 bg-muted rounded w-40" />
                 <div className="h-5 bg-muted rounded w-24" />
@@ -48,7 +51,7 @@ function HexagonDetailsSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="h-[calc(100vh-116px)] flex flex-col items-center justify-center p-4 text-center">
+    <div className="h-[calc(100vh-116px)] flex flex-col items-center justify-center p-4 text-center bg-zinc-50/50 dark:bg-zinc-900/50">
       <Hexagon className="h-12 w-12 text-muted-foreground mb-4" />
       <h3 className="text-lg font-medium mb-2">Select a Hexagon</h3>
       <p className="text-sm text-muted-foreground">
@@ -70,20 +73,20 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
   const showFetchButton = !hexagon.businesses_fetched && !showLoading;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-116px)]">
+    <div className="flex flex-col h-[calc(100vh-116px)] bg-zinc-50/50 dark:bg-zinc-900/50">
       {showLoading ? (
         <HexagonDetailsSkeleton />
       ) : (
         <>
           {/* Header */}
-          <div className="p-6 border-b bg-background/50 backdrop-blur-sm">
+          <div className="p-6 border-b bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm">
             <div className="flex items-center gap-3 mb-4">
               <Hexagon className="h-6 w-6 text-primary" />
               <h2 className="text-xl font-semibold">Hexagon Details</h2>
             </div>
 
             {/* Hexagon Info */}
-            <div className="bg-muted/30 p-4 rounded-lg space-y-3 shadow-md">
+            <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 shadow-md">
               <div>
                 <div className="text-sm text-muted-foreground">Hexagon ID</div>
                 <div className="font-mono text-sm">{hexagon.hexagon_id}</div>
@@ -119,7 +122,7 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                     {businesses.map((business) => (
                       <div
                         key={business.place_id}
-                        className="bg-card p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg"
+                        className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg"
                         onClick={() => setSelectedBusiness(business)}
                       >
                         <div className="flex items-start justify-between">
@@ -131,7 +134,7 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                               {business.types?.slice(0, 3).map((type) => (
                                 <span
                                   key={type}
-                                  className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground"
+                                  className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
                                 >
                                   {formatType(type)}
                                 </span>
@@ -164,7 +167,7 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                               {business.analysis.opportunityScore}%
                             </span>
                           </div>
-                          <div className="w-full bg-muted/50 rounded-full h-1.5">
+                          <div className="w-full bg-zinc-100 dark:bg-zinc-700 rounded-full h-1.5">
                             <div
                               className={`h-1.5 rounded-full ${
                                 business.analysis.opportunityScore > 70
@@ -184,7 +187,7 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                   </div>
                 </div>
               ) : showNoBusinesses ? (
-                <div className="text-center p-8 bg-muted/30 rounded-lg shadow-md">
+                <div className="text-center p-8 bg-white dark:bg-zinc-800 rounded-lg shadow-md">
                   <p className="text-muted-foreground">
                     No businesses found in this area
                   </p>
