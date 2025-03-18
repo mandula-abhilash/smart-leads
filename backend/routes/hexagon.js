@@ -7,7 +7,7 @@ import {
 
 const router = express.Router();
 
-// Get all businesses for a hexagon
+// Get businesses for a hexagon (also creates hexagon if it doesn't exist)
 router.get("/:hexagonId/businesses", getHexagonBusinesses);
 
 // Save businesses for a hexagon

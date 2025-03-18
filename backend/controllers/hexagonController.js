@@ -10,30 +10,41 @@ import {
   updateBusinessStatus as updateStatus,
 } from "../models/business.js";
 import { processBusinesses } from "../services/businessAnalyzer.js";
+import { fetchBusinessesFromGoogle } from "../services/googlePlaces.js";
 
 export async function getHexagonBusinesses(req, res) {
   try {
     const { hexagonId } = req.params;
 
     // Get hexagon details
-    const hexagon = await getHexagonById(hexagonId);
+    let hexagon = await getHexagonById(hexagonId);
 
+    // If hexagon doesn't exist, create it with initial state
     if (!hexagon) {
-      return res.status(404).json({
-        error: "Hexagon not found",
-      });
+      hexagon = {
+        hexagon_id: hexagonId,
+        businesses_fetched: false,
+        no_businesses_found: false,
+      };
     }
 
-    // Get businesses for this hexagon
+    // Get businesses for this hexagon if they exist
     const businesses = await getBusinessesByHexagon(hexagonId);
 
-    // Process businesses through the analyzer
-    const processedData = processBusinesses(businesses);
+    // Process businesses through the analyzer if they exist
+    const processedData =
+      businesses.length > 0
+        ? processBusinesses(businesses)
+        : {
+            businesses: [],
+            areaAnalysis: null,
+          };
 
     res.json({
       hexagon: {
         ...hexagon,
-        businesses_fetched: true,
+        businesses_fetched: Boolean(hexagon.businesses_fetched),
+        no_businesses_found: Boolean(hexagon.no_businesses_found),
       },
       ...processedData,
     });
@@ -49,13 +60,9 @@ export async function getHexagonBusinesses(req, res) {
 export async function createHexagonBusinesses(req, res) {
   try {
     const { hexagonId } = req.params;
-    const { businesses, geometry, center } = req.body;
 
-    if (!businesses || !Array.isArray(businesses)) {
-      return res.status(400).json({
-        error: "Invalid businesses data",
-      });
-    }
+    // Fetch businesses from Google Places API
+    const businesses = await fetchBusinessesFromGoogle(hexagonId);
 
     // Create or update hexagon
     let hexagon = await getHexagonById(hexagonId);
@@ -63,8 +70,13 @@ export async function createHexagonBusinesses(req, res) {
     if (!hexagon) {
       hexagon = await createHexagon({
         hexagon_id: hexagonId,
-        geometry,
-        center,
+        businesses_fetched: true,
+        no_businesses_found: businesses.length === 0,
+      });
+    } else {
+      await updateHexagonStatus(hexagonId, {
+        businesses_fetched: true,
+        no_businesses_found: businesses.length === 0,
       });
     }
 
@@ -75,6 +87,7 @@ export async function createHexagonBusinesses(req, res) {
           const result = await createBusiness({
             ...business,
             hexagon_id: hexagonId,
+            status: "new", // Default status for new businesses
           });
           return result[0];
         } catch (error) {
@@ -86,12 +99,6 @@ export async function createHexagonBusinesses(req, res) {
 
     // Filter out failed saves
     const validBusinesses = savedBusinesses.filter(Boolean);
-
-    // Update hexagon status
-    await updateHexagonStatus(hexagonId, {
-      businesses_fetched: true,
-      no_businesses_found: validBusinesses.length === 0,
-    });
 
     // Process businesses through the analyzer
     const processedData = processBusinesses(validBusinesses);
@@ -132,6 +139,7 @@ export async function updateBusinessStatus(req, res) {
       "converted",
       "rejected",
       "ignored",
+      "follow_up",
     ];
 
     if (!validStatuses.includes(status)) {

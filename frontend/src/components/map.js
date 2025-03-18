@@ -10,9 +10,14 @@ import {
 import * as h3 from "h3-js";
 import BusinessList from "./business/business-list";
 import BusinessDetails from "./business/business-details";
+import HexagonDetails from "./map/hexagon-details";
 import MapSearch from "./map-search";
 import { Button } from "./ui/button";
-import { MapIcon, Satellite, Globe, Mountain, Hexagon } from "lucide-react";
+import { MapIcon, Satellite, Globe, Mountain } from "lucide-react";
+import { getStatusIcon, getStatusColor } from "./business/business-status";
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -46,56 +51,6 @@ const options = {
     },
   ],
 };
-
-function HexagonDetails({ hexagon, onFetchBusinesses, isLoading }) {
-  if (!hexagon) return null;
-
-  const center = h3.cellToLatLng(hexagon.id);
-  const areaSqKm = h3.cellArea(hexagon.id, "km2");
-  const resolution = h3.getResolution(hexagon.id);
-
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Hexagon className="h-6 w-6 text-primary" />
-        <h2 className="text-xl font-semibold">Hexagon Details</h2>
-      </div>
-
-      <div className="space-y-4">
-        <div className="bg-muted/30 p-4 rounded-lg space-y-3">
-          <div>
-            <div className="text-sm text-muted-foreground">Hexagon ID</div>
-            <div className="font-mono text-sm">{hexagon.id}</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">
-              Center Coordinates
-            </div>
-            <div className="font-mono text-sm">
-              {center[0].toFixed(6)}, {center[1].toFixed(6)}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">Resolution</div>
-            <div>{resolution}</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">Area</div>
-            <div>{areaSqKm.toFixed(2)} km²</div>
-          </div>
-        </div>
-
-        <Button
-          className="w-full cursor-pointer"
-          onClick={onFetchBusinesses}
-          disabled={isLoading}
-        >
-          {isLoading ? "Fetching Businesses..." : "Fetch Businesses"}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export default function Map() {
   const { isLoaded, loadError } = useLoadScript({
@@ -133,7 +88,6 @@ export default function Map() {
         id: h3Index,
         paths: boundary.map(([lat, lng]) => ({ lat, lng })),
         center: { lat: center[0], lng: center[1] },
-        completed: false,
       };
     });
   }, []);
@@ -156,18 +110,15 @@ export default function Map() {
     (hexagon) => {
       if (!map) return;
 
-      // Calculate the bounds of the hexagon
       const bounds = new window.google.maps.LatLngBounds();
       hexagon.paths.forEach((point) => {
         bounds.extend(new window.google.maps.LatLng(point.lat, point.lng));
       });
 
-      // Center and zoom the map to fit the hexagon
       map.fitBounds(bounds, {
         padding: { top: 50, right: 50, bottom: 50, left: 50 },
       });
 
-      // Set a minimum zoom level to prevent zooming in too close
       const minZoom = 15;
       if (map.getZoom() > minZoom) {
         map.setZoom(minZoom);
@@ -177,38 +128,57 @@ export default function Map() {
   );
 
   const handleHexagonClick = useCallback(
-    (hexagon) => {
-      setSelectedHexagon(hexagon);
-      setBusinesses(null);
-      setAreaAnalysis(null);
-      setSelectedBusiness(null);
-      centerAndZoomOnHexagon(hexagon);
+    async (hexagon) => {
+      try {
+        // Clear previous state
+        setBusinesses(null);
+        setAreaAnalysis(null);
+        setSelectedBusiness(null);
+        setIsLoading(true);
+
+        // Create initial hexagon state
+        const initialHexagonState = {
+          hexagon_id: hexagon.id,
+          center: hexagon.center,
+          businesses_fetched: false,
+          no_businesses_found: false,
+        };
+
+        // Update UI immediately with hexagon info
+        setSelectedHexagon(initialHexagonState);
+        centerAndZoomOnHexagon(hexagon);
+
+        // Check if hexagon exists and has businesses
+        const response = await fetch(
+          `${BACKEND_URL}/api/hexagons/${hexagon.id}/businesses`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Update hexagon data with fetched information
+        setSelectedHexagon(data.hexagon);
+
+        if (data.businesses?.length > 0) {
+          setBusinesses(data.businesses);
+          setAreaAnalysis(data.areaAnalysis);
+        }
+      } catch (error) {
+        console.error("Error fetching hexagon data:", error);
+        // Keep the initial hexagon state on error
+        setSelectedHexagon((prev) => ({
+          ...prev,
+          error: "Failed to fetch hexagon data",
+        }));
+      } finally {
+        setIsLoading(false);
+      }
     },
     [centerAndZoomOnHexagon]
   );
-
-  const fetchBusinesses = useCallback(async () => {
-    if (!selectedHexagon) return;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/businesses/search?lat=${selectedHexagon.center.lat}&lng=${selectedHexagon.center.lng}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch businesses");
-      }
-
-      const data = await response.json();
-      setBusinesses(data.businesses);
-      setAreaAnalysis(data.areaAnalysis);
-    } catch (error) {
-      console.error("Error fetching businesses:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedHexagon]);
 
   const handleLocationSelect = useCallback(
     ({ lat, lng }) => {
@@ -224,13 +194,11 @@ export default function Map() {
     (business) => {
       setSelectedBusiness(business);
       if (map) {
-        // Center the map on the business location with smooth animation
         map.panTo({
           lat: business.location.lat,
           lng: business.location.lng,
         });
 
-        // Zoom in slightly for better visibility
         const targetZoom = 17;
         if (map.getZoom() < targetZoom) {
           map.setZoom(targetZoom);
@@ -249,6 +217,26 @@ export default function Map() {
     },
     [map]
   );
+
+  const handleBusinessStatusChange = useCallback((updatedBusiness) => {
+    setBusinesses((prevBusinesses) =>
+      prevBusinesses.map((business) =>
+        business.place_id === updatedBusiness.place_id
+          ? updatedBusiness
+          : business
+      )
+    );
+  }, []);
+
+  const handleFetchComplete = useCallback((data) => {
+    setBusinesses(data.businesses);
+    setAreaAnalysis(data.areaAnalysis);
+    setSelectedHexagon((prev) => ({
+      ...prev,
+      businesses_fetched: true,
+      no_businesses_found: !data.businesses?.length,
+    }));
+  }, []);
 
   if (loadError) {
     return (
@@ -294,21 +282,18 @@ export default function Map() {
         </div>
 
         {/* Hexagon Details or Business List */}
-        {selectedHexagon && !businesses ? (
+        {selectedHexagon ? (
           <HexagonDetails
             hexagon={selectedHexagon}
-            onFetchBusinesses={fetchBusinesses}
+            businesses={businesses}
+            onFetchComplete={handleFetchComplete}
+            onBusinessStatusChange={handleBusinessStatusChange}
             isLoading={isLoading}
           />
         ) : (
-          <BusinessList
-            businesses={businesses}
-            selectedBusiness={selectedBusiness}
-            onBusinessClick={handleMarkerClick}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            isLoading={isLoading}
-          />
+          <div className="p-6 text-center text-muted-foreground">
+            Click on a hexagon to view details
+          </div>
         )}
       </div>
 
@@ -331,40 +316,47 @@ export default function Map() {
               paths={hexagon.paths}
               onClick={() => handleHexagonClick(hexagon)}
               options={{
-                fillColor: hexagon.completed ? "#10b981" : "#2563eb",
-                fillOpacity: selectedHexagon?.id === hexagon.id ? 0.25 : 0.08,
+                fillColor:
+                  selectedHexagon?.hexagon_id === hexagon.id
+                    ? "#3b82f6"
+                    : "#6366f1",
+                fillOpacity: 0.2,
                 strokeColor:
-                  selectedHexagon?.id === hexagon.id
-                    ? "#000000"
-                    : hexagon.completed
-                    ? "#10b981"
-                    : "#2563eb",
-                strokeWeight: selectedHexagon?.id === hexagon.id ? 4 : 3,
-                strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.8,
-                clickable: true,
+                  selectedHexagon?.hexagon_id === hexagon.id
+                    ? "#2563eb"
+                    : "#4f46e5",
+                strokeWeight:
+                  selectedHexagon?.hexagon_id === hexagon.id ? 2 : 1,
+                strokeOpacity: 0.8,
               }}
             />
           ))}
-          {businesses?.map((business) => (
-            <Marker
-              key={business.place_id}
-              position={{
-                lat: business.location.lat,
-                lng: business.location.lng,
-              }}
-              onClick={() => handleMarkerClick(business)}
-              animation={
-                selectedBusiness?.place_id === business.place_id
-                  ? window.google.maps.Animation.BOUNCE
-                  : null
-              }
-            />
-          ))}
+          {businesses?.map((business) => {
+            const StatusIcon = getStatusIcon(business.status);
+            return (
+              <Marker
+                key={business.place_id}
+                position={{
+                  lat: business.location.lat,
+                  lng: business.location.lng,
+                }}
+                onClick={() => handleMarkerClick(business)}
+                icon={{
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  scale: 8,
+                  fillColor: getStatusColor(business.status),
+                  fillOpacity: 1,
+                  strokeWeight: 2,
+                  strokeColor: "#ffffff",
+                }}
+              />
+            );
+          })}
         </GoogleMap>
       </div>
 
       {/* Right Panel - Business Details */}
-      {businesses && (
+      {selectedBusiness && (
         <div className="w-[400px] h-screen border-l bg-background/95 backdrop-blur-sm z-20">
           <BusinessDetails
             business={selectedBusiness}
