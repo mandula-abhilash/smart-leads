@@ -159,6 +159,8 @@ export default function Map() {
 
         const data = await response.json();
 
+        console.log(JSON.stringify(data, null, 2));
+
         // Update hexagon data with fetched information
         setSelectedHexagon(data.hexagon);
 
