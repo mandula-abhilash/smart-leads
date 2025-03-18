@@ -4,11 +4,11 @@ export default {
   development: {
     client: "postgresql",
     connection: {
-      host: process.env.PG_HOST || "localhost",
-      port: process.env.PG_PORT || 5432,
-      database: process.env.PG_DATABASE || "visdak_smart_leads",
-      user: process.env.PG_USER || "postgres",
-      password: process.env.PG_PASSWORD || "postgres",
+      host: process.env.PG_HOST,
+      port: process.env.PG_PORT,
+      database: process.env.PG_DATABASE,
+      user: process.env.PG_USER,
+      password: process.env.PG_PASSWORD,
     },
     pool: {
       min: 2,
