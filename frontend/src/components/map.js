@@ -9,7 +9,6 @@ import {
 } from "@react-google-maps/api";
 import * as h3 from "h3-js";
 import BusinessSidebar from "./business-sidebar";
-import MapControlsSidebar from "./map-controls-sidebar";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -173,16 +172,15 @@ export default function Map() {
 
   return (
     <div className="relative w-full h-screen">
-      <MapControlsSidebar
-        onSelectLocation={handleLocationSelect}
-        onMapTypeChange={handleMapTypeChange}
-      />
       <BusinessSidebar
         businesses={businesses}
         isLoading={isLoading}
         onClose={handleCloseSidebar}
         selectedBusiness={selectedBusiness}
         onBusinessClick={handleMarkerClick}
+        onSelectLocation={handleLocationSelect}
+        onMapTypeChange={handleMapTypeChange}
+        activeMapType={mapType}
       />
       <GoogleMap
         mapContainerStyle={mapContainerStyle}

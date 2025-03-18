@@ -12,6 +12,11 @@ import {
   AlertCircle,
   Filter,
   Search,
+  Map as MapIcon,
+  Satellite,
+  Mountain,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -30,6 +35,14 @@ import {
   AccordionTrigger,
 } from "./ui/accordion";
 import { Input } from "./ui/input";
+import MapSearch from "./map-search";
+
+const MAP_TYPES = [
+  { id: "roadmap", name: "Road Map", icon: MapIcon },
+  { id: "satellite", name: "Satellite", icon: Satellite },
+  { id: "hybrid", name: "Hybrid", icon: Globe },
+  { id: "terrain", name: "Terrain", icon: Mountain },
+];
 
 function formatType(type) {
   return type
@@ -48,11 +61,15 @@ export default function BusinessSidebar({
   onClose,
   selectedBusiness,
   onBusinessClick,
+  onSelectLocation,
+  onMapTypeChange,
+  activeMapType,
 }) {
   const [selectedType, setSelectedType] = useState("all");
   const [showNoWebsite, setShowNoWebsite] = useState(false);
   const [showNoReviews, setShowNoReviews] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const businessTypes = useMemo(() => {
     if (!businesses || businesses.length === 0) return ["all"];
@@ -103,66 +120,98 @@ export default function BusinessSidebar({
         </Button>
       </div>
 
-      {/* Sticky Filter Section */}
-      <div className="border-b p-4 bg-muted/50 sticky top-16 z-20">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-4 w-4" />
-          <span className="font-medium">Filters</span>
+      {/* Search and Map Controls */}
+      <div className="border-b p-4 space-y-4 bg-muted/30">
+        <MapSearch onSelectLocation={onSelectLocation} />
+        <div className="flex gap-2">
+          {MAP_TYPES.map((type) => {
+            const Icon = type.icon;
+            return (
+              <Button
+                key={type.id}
+                onClick={() => onMapTypeChange(type.id)}
+                variant={activeMapType === type.id ? "secondary" : "ghost"}
+                size="icon"
+                className="h-9 w-9"
+              >
+                <Icon className="h-5 w-5" />
+              </Button>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="space-y-4">
-          {/* Search Input */}
-          <div className="relative">
-            <Input
-              placeholder="Search by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+      {/* Collapsible Filters */}
+      <div className="border-b bg-muted/30">
+        <button
+          onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+          className="w-full p-4 flex items-center justify-between text-sm font-medium"
+        >
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <span>Filters</span>
           </div>
-
-          {/* Category Select */}
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">Category</Label>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="focus:ring-0 focus:ring-offset-0">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {businessTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type === "all" ? "All Categories" : formatType(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Toggles */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <Label className="cursor-pointer text-muted-foreground">
-                Show only without website
-              </Label>
-              <Switch
-                checked={showNoWebsite}
-                onCheckedChange={setShowNoWebsite}
-                className="focus:ring-0 focus:ring-offset-0"
+          {isFiltersOpen ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
+        {isFiltersOpen && (
+          <div className="p-4 space-y-4">
+            {/* Search Input */}
+            <div className="relative">
+              <Input
+                placeholder="Search by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10"
               />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             </div>
-            <div className="flex items-center justify-between">
-              <Label className="cursor-pointer text-muted-foreground">
-                Show only without reviews
-              </Label>
-              <Switch
-                checked={showNoReviews}
-                onCheckedChange={setShowNoReviews}
-                className="focus:ring-0 focus:ring-offset-0"
-              />
+
+            {/* Category Select */}
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Category</Label>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="focus:ring-0 focus:ring-offset-0">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {businessTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type === "all" ? "All Categories" : formatType(type)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <Label className="cursor-pointer text-muted-foreground">
+                  Show only without website
+                </Label>
+                <Switch
+                  checked={showNoWebsite}
+                  onCheckedChange={setShowNoWebsite}
+                  className="focus:ring-0 focus:ring-offset-0"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="cursor-pointer text-muted-foreground">
+                  Show only without reviews
+                </Label>
+                <Switch
+                  checked={showNoReviews}
+                  onCheckedChange={setShowNoReviews}
+                  className="focus:ring-0 focus:ring-offset-0"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Business List */}
@@ -179,160 +228,176 @@ export default function BusinessSidebar({
               return (
                 <div
                   key={business.place_id}
-                  className={`group relative overflow-hidden shadow-lg rounded-xl transition-all cursor-pointer hover:shadow-lg p-4 ${
+                  className={`group relative overflow-hidden rounded-xl transition-all cursor-pointer hover:scale-[1.02] ${
                     isOpportunity
-                      ? "bg-orange-100/50 dark:bg-orange-950/10"
+                      ? "bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/20 dark:to-orange-900/10 shadow-orange-100/50 dark:shadow-orange-900/20"
                       : selectedBusiness?.place_id === business.place_id
-                      ? "bg-primary/5 hover:bg-primary/10"
-                      : "bg-card hover:bg-muted/50"
-                  }`}
+                      ? "bg-gradient-to-br from-primary/10 to-primary/5 shadow-primary/20"
+                      : "bg-gradient-to-br from-card to-card/50 hover:from-muted/50 hover:to-muted/30"
+                  } shadow-lg backdrop-blur-sm`}
                   onClick={() => onBusinessClick(business)}
                 >
-                  {/* Business Header */}
-                  <div className="flex items-start justify-between">
-                    <h4 className="font-medium text-lg group-hover:text-primary transition-colors">
-                      {business.name}
-                    </h4>
-                    {business.price_level && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <DollarSign className="h-4 w-4" />
-                        <span>{formatPriceLevel(business.price_level)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Info */}
-                  <div className="grid grid-cols-2 gap-3 mt-2 text-sm">
-                    {/* Rating */}
-                    <div className="col-span-2">
-                      {business.rating ? (
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-medium">{business.rating}</span>
-                          <span className="text-muted-foreground">
-                            ({business.user_ratings_total} reviews)
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-orange-600">
-                          <AlertCircle className="h-4 w-4" />
-                          <span>No Reviews</span>
+                  <div className="p-4">
+                    {/* Business Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                        {business.name}
+                      </h4>
+                      {business.price_level && (
+                        <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                          <DollarSign className="h-4 w-4" />
+                          <span>{formatPriceLevel(business.price_level)}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Contact Links */}
-                    {business.phone && (
-                      <a
-                        href={`tel:${business.phone}`}
-                        className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Phone className="h-4 w-4" />
-                        <span className="truncate">{business.phone}</span>
-                      </a>
-                    )}
-                    {business.website ? (
-                      <a
-                        href={business.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Globe className="h-4 w-4" />
-                        <span>Website</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center gap-2 text-orange-600">
-                        <LinkIcon className="h-4 w-4" />
-                        <span>No Website</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Categories */}
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {business.types?.slice(0, 3).map((type) => (
-                      <span
-                        key={type}
-                        className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground"
-                      >
-                        {formatType(type)}
-                      </span>
-                    ))}
-                    {business.types?.length > 3 && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
-                        +{business.types.length - 3} more
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Address & Map Link */}
-                  <div className="space-y-2 mt-2">
-                    {business.address && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 shrink-0" />
-                        <span>{business.address}</span>
-                      </div>
-                    )}
-                    <a
-                      href={
-                        business.google_maps_url ||
-                        `https://www.google.com/maps/place/?q=place_id:${business.place_id}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Globe className="h-4 w-4" />
-                      View on Google Maps
-                    </a>
-                  </div>
-
-                  {/* Reviews Accordion */}
-                  {business.reviews && business.reviews.length > 0 && (
-                    <Accordion
-                      type="single"
-                      collapsible
-                      className="w-full mt-2"
-                    >
-                      <AccordionItem value="reviews" className="border-none">
-                        <AccordionTrigger className="py-0 hover:no-underline">
-                          <span className="flex items-center gap-2 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors">
-                            <Star className="h-4 w-4" />
-                            Recent Reviews ({business.reviews.length})
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-2 mt-2">
-                            {business.reviews.slice(0, 3).map((review, idx) => (
-                              <div
-                                key={`${business.place_id}-review-${idx}`}
-                                className="bg-muted/30 p-3 rounded-lg space-y-1"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="flex items-center gap-1">
-                                    <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                                    <span className="font-medium">
-                                      {review.rating}
-                                    </span>
-                                  </div>
-                                  <span className="text-xs text-muted-foreground">
-                                    by {review.author_name}
-                                  </span>
-                                </div>
-                                <p className="text-sm line-clamp-2">
-                                  {review.text}
-                                </p>
-                              </div>
-                            ))}
+                    {/* Quick Info */}
+                    <div className="space-y-3">
+                      {/* Rating */}
+                      <div>
+                        {business.rating ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex">
+                              {[...Array(Math.round(business.rating))].map(
+                                (_, i) => (
+                                  <Star
+                                    key={i}
+                                    className="h-4 w-4 text-yellow-500 fill-current"
+                                  />
+                                )
+                              )}
+                            </div>
+                            <span className="font-medium">
+                              {business.rating}
+                            </span>
+                            <span className="text-muted-foreground">
+                              ({business.user_ratings_total} reviews)
+                            </span>
                           </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  )}
+                        ) : (
+                          <div className="flex items-center gap-2 text-orange-600">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>No Reviews</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Contact Links */}
+                      <div className="flex flex-wrap gap-3">
+                        {business.phone && (
+                          <a
+                            href={`tel:${business.phone}`}
+                            className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Phone className="h-4 w-4" />
+                            <span className="truncate">{business.phone}</span>
+                          </a>
+                        )}
+                        {business.website ? (
+                          <a
+                            href={business.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Globe className="h-4 w-4" />
+                            <span>Website</span>
+                          </a>
+                        ) : (
+                          <div className="flex items-center gap-2 text-orange-600">
+                            <LinkIcon className="h-4 w-4" />
+                            <span>No Website</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Categories */}
+                      <div className="flex flex-wrap gap-2">
+                        {business.types?.slice(0, 3).map((type) => (
+                          <span
+                            key={type}
+                            className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium"
+                          >
+                            {formatType(type)}
+                          </span>
+                        ))}
+                        {business.types?.length > 3 && (
+                          <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium">
+                            +{business.types.length - 3} more
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Address & Map Link */}
+                      <div className="space-y-2">
+                        {business.address && (
+                          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4 shrink-0 mt-1" />
+                            <span>{business.address}</span>
+                          </div>
+                        )}
+                        <a
+                          href={
+                            business.google_maps_url ||
+                            `https://www.google.com/maps/place/?q=place_id:${business.place_id}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Globe className="h-4 w-4" />
+                          View on Google Maps
+                        </a>
+                      </div>
+
+                      {/* Reviews Accordion */}
+                      {business.reviews && business.reviews.length > 0 && (
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem
+                            value="reviews"
+                            className="border-none"
+                          >
+                            <AccordionTrigger className="py-0 hover:no-underline">
+                              <span className="flex items-center gap-2 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors">
+                                <Star className="h-4 w-4" />
+                                Recent Reviews ({business.reviews.length})
+                              </span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2 mt-2">
+                                {business.reviews
+                                  .slice(0, 3)
+                                  .map((review, idx) => (
+                                    <div
+                                      key={`${business.place_id}-review-${idx}`}
+                                      className="bg-muted/30 p-3 rounded-lg space-y-1"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
+                                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                                          <span className="font-medium">
+                                            {review.rating}
+                                          </span>
+                                        </div>
+                                        <span className="text-xs text-muted-foreground">
+                                          by {review.author_name}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm line-clamp-2">
+                                        {review.text}
+                                      </p>
+                                    </div>
+                                  ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })}
