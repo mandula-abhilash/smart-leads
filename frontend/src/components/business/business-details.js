@@ -37,19 +37,18 @@ export default function BusinessDetails({ business }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold mb-2">{business.name}</h2>
-          {business.address && (
-            <div className="flex items-start gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0 mt-1" />
-              <span>{business.address}</span>
-            </div>
-          )}
-        </div>
+    <div className="h-screen overflow-y-auto">
+      <div className="sticky top-0 z-10 bg-background/50 backdrop-blur-sm border-b p-6">
+        <h2 className="text-2xl font-semibold">{business.name}</h2>
+        {business.address && (
+          <div className="flex items-start gap-2 text-muted-foreground mt-2">
+            <MapPin className="h-4 w-4 shrink-0 mt-1" />
+            <span>{business.address}</span>
+          </div>
+        )}
+      </div>
 
+      <div className="p-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="p-4 rounded-lg bg-muted/30">

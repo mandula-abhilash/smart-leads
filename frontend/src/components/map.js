@@ -37,7 +37,7 @@ const options = {
   zoomControl: false,
   streetViewControl: false,
   mapTypeControl: false,
-  minZoom: 15,
+  minZoom: 13,
   styles: [
     {
       featureType: "poi",
@@ -180,11 +180,11 @@ export default function Map() {
   }
 
   return (
-    <div className="relative w-full h-screen flex">
+    <div className="relative w-full h-screen flex overflow-hidden">
       {/* Left Sidebar - Business List */}
-      <div className="w-80 h-full border-r bg-background/95 backdrop-blur-sm flex flex-col z-20">
+      <div className="w-80 h-screen border-r bg-background/95 backdrop-blur-sm flex flex-col z-20">
         {/* Map Controls */}
-        <div className="border-b p-4 space-y-4">
+        <div className="border-b p-4 space-y-4 bg-background/50 backdrop-blur-sm">
           <MapSearch onSelectLocation={handleLocationSelect} />
           <div className="flex gap-2">
             {MAP_TYPES.map((type) => {
@@ -269,7 +269,7 @@ export default function Map() {
 
       {/* Right Panel - Business Details */}
       {businesses && (
-        <div className="w-[480px] h-full border-l bg-background/95 backdrop-blur-sm z-20">
+        <div className="w-[480px] h-screen border-l bg-background/95 backdrop-blur-sm z-20">
           <BusinessDetails business={selectedBusiness} />
         </div>
       )}

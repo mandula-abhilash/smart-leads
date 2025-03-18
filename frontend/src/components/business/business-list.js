@@ -18,9 +18,9 @@ export default function BusinessList({
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col h-[calc(100vh-116px)]">
       {/* Search */}
-      <div className="p-4 border-b">
+      <div className="p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="relative">
           <Input
             placeholder="Search businesses..."
@@ -33,8 +33,8 @@ export default function BusinessList({
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="grid gap-3">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 grid gap-3">
           {filteredBusinesses.map((business) => (
             <BusinessCard
               key={business.place_id}
