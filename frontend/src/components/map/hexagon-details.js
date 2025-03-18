@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Hexagon, MapPin, Loader2, TrendingUp } from "lucide-react";
-import BusinessStatus from "../business/business-status";
 import FetchBusinessesButton from "./fetch-businesses-button";
 import { useBusinessContext } from "@/contexts/BusinessContext";
 
@@ -62,7 +61,19 @@ function EmptyState() {
 }
 
 export default function HexagonDetails({ hexagon, businesses, isLoading }) {
-  const { setSelectedBusiness, updateBusinessStatus } = useBusinessContext();
+  const [selectedBusinessId, setSelectedBusinessId] = useState(null);
+  const { setSelectedBusiness } = useBusinessContext();
+
+  const handleBusinessClick = (business) => {
+    setSelectedBusinessId(business.place_id);
+    // Simulate loading state
+    setTimeout(() => {
+      setSelectedBusiness(business);
+      setSelectedBusinessId(null);
+      // Scroll to top of business details
+      document.querySelector(".business-details")?.scrollTo(0, 0);
+    }, 500);
+  };
 
   if (!hexagon) return <EmptyState />;
 
@@ -122,9 +133,18 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                     {businesses.map((business) => (
                       <div
                         key={business.place_id}
-                        className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg"
-                        onClick={() => setSelectedBusiness(business)}
+                        className={`bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg relative ${
+                          selectedBusinessId === business.place_id
+                            ? "opacity-50"
+                            : ""
+                        }`}
+                        onClick={() => handleBusinessClick(business)}
                       >
+                        {selectedBusinessId === business.place_id && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-lg">
+                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                          </div>
+                        )}
                         <div className="flex items-start justify-between">
                           <div>
                             <h4 className="font-medium hover:text-primary transition-colors">
@@ -141,11 +161,6 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                               ))}
                             </div>
                           </div>
-                          <BusinessStatus
-                            status={business.status}
-                            placeId={business.place_id}
-                            onStatusChange={updateBusinessStatus}
-                          />
                         </div>
 
                         {/* Opportunity Score */}

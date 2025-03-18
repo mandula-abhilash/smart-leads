@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Star,
   Globe,
@@ -19,6 +20,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import BusinessStatus from "./business-status";
+import { useBusinessContext } from "@/contexts/BusinessContext";
 
 function formatPriceLevel(level) {
   return level ? "$".repeat(level) : "N/A";
@@ -93,6 +96,8 @@ function EmptyState() {
 }
 
 export default function BusinessDetails({ business, isLoading, businesses }) {
+  const { updateBusinessStatus } = useBusinessContext();
+
   if (isLoading) {
     return <BusinessDetailsSkeleton />;
   }
@@ -102,10 +107,17 @@ export default function BusinessDetails({ business, isLoading, businesses }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-zinc-50/50 dark:bg-zinc-900/50">
+    <div className="h-screen flex flex-col bg-zinc-50/50 dark:bg-zinc-900/50 business-details">
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border-b p-4">
-        <h2 className="text-xl font-semibold mb-2">{business.name}</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-semibold">{business.name}</h2>
+          <BusinessStatus
+            status={business.status}
+            placeId={business.place_id}
+            onStatusChange={updateBusinessStatus}
+          />
+        </div>
         {business.address && (
           <div className="flex items-start gap-2 text-muted-foreground">
             <MapPin className="h-4 w-4 shrink-0 mt-1" />
