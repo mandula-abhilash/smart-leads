@@ -6,6 +6,7 @@ import morgan from "morgan";
 import winston from "winston";
 import rateLimit from "express-rate-limit";
 import businessRoutes from "./routes/business.js";
+import hexagonRoutes from "./routes/hexagon.js";
 
 // Configure Winston logger
 const logger = winston.createLogger({
@@ -45,6 +46,7 @@ app.use(limiter);
 
 // Routes
 app.use("/api/businesses", businessRoutes);
+app.use("/api/hexagons", hexagonRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -52,7 +54,7 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);
 });
