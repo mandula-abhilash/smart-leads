@@ -111,20 +111,31 @@ export async function getBusinessesByHexagon(hexagonId) {
     )
     .where("hexagon_id", hexagonId)
     .then((businesses) =>
-      businesses.map((business) => ({
-        ...business,
-        // Parse JSON fields
-        photos: business.photos ? JSON.parse(business.photos) : null,
-        opening_hours: business.opening_hours
-          ? JSON.parse(business.opening_hours)
-          : null,
-        reviews: business.reviews ? JSON.parse(business.reviews) : null,
-        insights: business.insights ? JSON.parse(business.insights) : null,
-        location: {
-          lat: parseFloat(business.lat),
-          lng: parseFloat(business.lng),
-        },
-      }))
+      businesses.map((business) => {
+        // Safely parse JSON fields with error handling
+        const safeParseJSON = (str) => {
+          if (!str) return null;
+          try {
+            return JSON.parse(str);
+          } catch (error) {
+            console.error(`Error parsing JSON field:`, error);
+            return null;
+          }
+        };
+
+        return {
+          ...business,
+          // Parse JSON fields safely
+          photos: safeParseJSON(business.photos),
+          opening_hours: safeParseJSON(business.opening_hours),
+          reviews: safeParseJSON(business.reviews),
+          insights: safeParseJSON(business.insights),
+          location: {
+            lat: parseFloat(business.lat),
+            lng: parseFloat(business.lng),
+          },
+        };
+      })
     );
 }
 
@@ -140,7 +151,7 @@ export async function getBusinessById(placeId) {
       business
         ? {
             ...business,
-            // Parse JSON fields
+            // Parse JSON fields safely
             photos: business.photos ? JSON.parse(business.photos) : null,
             opening_hours: business.opening_hours
               ? JSON.parse(business.opening_hours)
