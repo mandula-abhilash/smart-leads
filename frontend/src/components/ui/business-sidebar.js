@@ -6,12 +6,12 @@ import {
   Star,
   Globe,
   MapPin,
-  Clock,
   Phone,
   Link as LinkIcon,
   DollarSign,
   AlertCircle,
   Filter,
+  Tags,
 } from "lucide-react";
 import { Button } from "./button";
 import { Label } from "./label";
@@ -87,7 +87,12 @@ export default function BusinessSidebar({
             ? "Loading..."
             : `${filteredBusinesses.length} Businesses Found`}
         </h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="hover:bg-muted"
+        >
           <X className="h-5 w-5" />
         </Button>
       </div>
@@ -100,9 +105,9 @@ export default function BusinessSidebar({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label className="text-muted-foreground">Category</Label>
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger>
+              <SelectTrigger className="focus:ring-0 focus:ring-offset-0">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -116,18 +121,24 @@ export default function BusinessSidebar({
           </div>
 
           <div className="flex items-center justify-between">
-            <Label className="cursor-pointer">Show only without website</Label>
+            <Label className="cursor-pointer text-muted-foreground">
+              Show only without website
+            </Label>
             <Switch
               checked={showNoWebsite}
               onCheckedChange={setShowNoWebsite}
+              className="focus:ring-0 focus:ring-offset-0"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <Label className="cursor-pointer">Show only without reviews</Label>
+            <Label className="cursor-pointer text-muted-foreground">
+              Show only without reviews
+            </Label>
             <Switch
               checked={showNoReviews}
               onCheckedChange={setShowNoReviews}
+              className="focus:ring-0 focus:ring-offset-0"
             />
           </div>
         </div>
@@ -140,178 +151,165 @@ export default function BusinessSidebar({
           </div>
         ) : (
           <div className="p-4 space-y-4">
-            {filteredBusinesses.map((business) => (
-              <div
-                key={business.place_id}
-                className={`p-4 rounded-lg border transition-all cursor-pointer hover:shadow-md ${
-                  !business.website || !business.reviews?.length
-                    ? "border-warning bg-warning/5"
-                    : selectedBusiness?.place_id === business.place_id
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/20"
-                }`}
-                onClick={() => onBusinessClick(business)}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h4 className="font-medium">{business.name}</h4>
-                  {(!business.website || !business.reviews?.length) && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning-foreground">
-                      <AlertCircle className="w-3 h-3 mr-1" />
-                      Opportunity
-                    </span>
-                  )}
-                </div>
+            {filteredBusinesses.map((business) => {
+              const isOpportunity =
+                !business.website || !business.reviews?.length;
+              return (
+                <div
+                  key={business.place_id}
+                  className={`group relative overflow-hidden rounded-xl transition-all cursor-pointer hover:shadow-lg ${
+                    isOpportunity
+                      ? "bg-orange-50/50 dark:bg-orange-950/10 hover:bg-orange-100/50"
+                      : selectedBusiness?.place_id === business.place_id
+                      ? "bg-primary/5 hover:bg-primary/10"
+                      : "bg-card hover:bg-muted/50"
+                  }`}
+                  onClick={() => onBusinessClick(business)}
+                >
+                  <div className="p-4 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-medium text-lg group-hover:text-primary transition-colors">
+                        {business.name}
+                      </h4>
+                    </div>
 
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {business.types?.map((type) => (
-                    <span
-                      key={type}
-                      className="text-xs bg-muted px-2 py-1 rounded-full"
-                    >
-                      {formatType(type)}
-                    </span>
-                  ))}
-                </div>
-
-                {business.rating ? (
-                  <div className="flex items-center gap-1 mb-3">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium">
-                      {business.rating}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      ({business.user_ratings_total} reviews)
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 mb-3 text-destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <span className="text-sm">No Reviews</span>
-                  </div>
-                )}
-
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="details">
-                    <AccordionTrigger className="text-sm">
-                      Business Details
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-3">
-                        {business.price_level !== undefined && (
+                    {/* Quick Info Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Rating */}
+                      <div className="col-span-2">
+                        {business.rating ? (
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">
-                              {formatPriceLevel(business.price_level)}
+                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <span className="font-medium">
+                              {business.rating}
+                            </span>
+                            <span className="text-muted-foreground">
+                              ({business.user_ratings_total} reviews)
                             </span>
                           </div>
-                        )}
-
-                        {business.business_status && (
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm capitalize">
-                              {business.business_status
-                                .toLowerCase()
-                                .replace(/_/g, " ")}
-                            </span>
+                        ) : (
+                          <div className="flex items-center gap-2 text-orange-600">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>No Reviews</span>
                           </div>
                         )}
-
-                        {business.address && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{business.address}</span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          {business.phone ? (
-                            <a
-                              href={`tel:${business.phone}`}
-                              className="text-sm text-primary hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {business.phone}
-                            </a>
-                          ) : (
-                            <span className="text-sm text-destructive">
-                              Phone Not Available
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <LinkIcon className="h-4 w-4 text-muted-foreground" />
-                          {business.website ? (
-                            <a
-                              href={business.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-primary hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              Visit Website
-                            </a>
-                          ) : (
-                            <span className="text-sm text-destructive">
-                              Website Not Available
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-muted-foreground" />
-                          <a
-                            href={
-                              business.google_maps_url ||
-                              `https://www.google.com/maps/place/?q=place_id:${business.place_id}`
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            View on Maps
-                          </a>
-                        </div>
                       </div>
-                    </AccordionContent>
-                  </AccordionItem>
 
-                  {business.reviews && business.reviews.length > 0 && (
-                    <AccordionItem value="reviews">
-                      <AccordionTrigger className="text-sm">
-                        Recent Reviews ({business.reviews.length})
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-3">
-                          {business.reviews.slice(0, 3).map((review, idx) => (
-                            <div
-                              key={`${business.place_id}-review-${idx}`}
-                              className="text-sm bg-muted/50 p-3 rounded-md"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                                <span className="font-medium">
-                                  {review.rating}
-                                </span>
-                                <span className="text-muted-foreground">
-                                  by {review.author_name}
-                                </span>
-                              </div>
-                              <p className="text-sm line-clamp-2">
-                                {review.text}
-                              </p>
-                            </div>
-                          ))}
+                      {/* Contact Links */}
+                      {business.phone && (
+                        <a
+                          href={`tel:${business.phone}`}
+                          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Phone className="h-4 w-4" />
+                          <span className="truncate">{business.phone}</span>
+                        </a>
+                      )}
+                      {business.website ? (
+                        <a
+                          href={business.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Globe className="h-4 w-4" />
+                          <span>Website</span>
+                        </a>
+                      ) : (
+                        <div className="flex items-center gap-2 text-orange-600">
+                          <LinkIcon className="h-4 w-4" />
+                          <span>No Website</span>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                </Accordion>
-              </div>
-            ))}
+                      )}
+                    </div>
+
+                    {/* Categories */}
+                    <div className="flex flex-wrap gap-1">
+                      {business.types?.slice(0, 3).map((type) => (
+                        <span
+                          key={type}
+                          className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground"
+                        >
+                          {formatType(type)}
+                        </span>
+                      ))}
+                      {business.types?.length > 3 && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
+                          +{business.types.length - 3} more
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Address and Maps Link */}
+                    <div className="space-y-2">
+                      {business.address && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4 shrink-0" />
+                          <span>{business.address}</span>
+                        </div>
+                      )}
+                      <a
+                        href={
+                          business.google_maps_url ||
+                          `https://www.google.com/maps/place/?q=place_id:${business.place_id}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Globe className="h-4 w-4" />
+                        View on Google Maps
+                      </a>
+                    </div>
+
+                    {/* Reviews Section */}
+                    {business.reviews && business.reviews.length > 0 && (
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="reviews" className="border-none">
+                          <AccordionTrigger className="py-0 hover:no-underline">
+                            <span className="flex items-center gap-2 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors">
+                              <Star className="h-4 w-4" />
+                              Recent Reviews ({business.reviews.length})
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-2 mt-2">
+                              {business.reviews
+                                .slice(0, 3)
+                                .map((review, idx) => (
+                                  <div
+                                    key={`${business.place_id}-review-${idx}`}
+                                    className="bg-muted/30 p-3 rounded-lg space-y-1"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-1">
+                                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                                        <span className="font-medium">
+                                          {review.rating}
+                                        </span>
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">
+                                        by {review.author_name}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm line-clamp-2">
+                                      {review.text}
+                                    </p>
+                                  </div>
+                                ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
