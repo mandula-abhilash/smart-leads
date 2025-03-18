@@ -33,8 +33,33 @@ export function getStatusIcon(status) {
   return option ? option.icon : Star;
 }
 
+// Updated to return hex color values instead of Tailwind classes
 export function getStatusColor(status) {
   switch (status) {
+    case "new":
+      return "#FFFFFF"; // white
+    case "converted":
+      return "#22C55E"; // green-600
+    case "contacted":
+      return "#2563EB"; // blue-600
+    case "responded":
+      return "#9333EA"; // purple-600
+    case "rejected":
+      return "#DC2626"; // red-600
+    case "ignored":
+      return "#4B5563"; // gray-600
+    case "follow_up":
+      return "#D97706"; // amber-600
+    default:
+      return "#FFFFFF"; // white (default)
+  }
+}
+
+// Function to get Tailwind classes for UI elements
+export function getStatusColorClass(status) {
+  switch (status) {
+    case "new":
+      return "text-white dark:text-white";
     case "converted":
       return "text-green-600 dark:text-green-500";
     case "contacted":
@@ -48,7 +73,7 @@ export function getStatusColor(status) {
     case "follow_up":
       return "text-amber-600 dark:text-amber-500";
     default:
-      return "text-primary";
+      return "text-white dark:text-white";
   }
 }
 
@@ -82,7 +107,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
           {isUpdating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <StatusIcon className={`h-4 w-4 ${getStatusColor(status)}`} />
+            <StatusIcon className={`h-4 w-4 ${getStatusColorClass(status)}`} />
           )}
           <SelectValue placeholder="Select status">
             {currentOption?.label}
@@ -99,7 +124,9 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
               className="flex items-center gap-2"
             >
               <div className="flex items-center gap-2">
-                <Icon className={`h-4 w-4 ${getStatusColor(option.value)}`} />
+                <Icon
+                  className={`h-4 w-4 ${getStatusColorClass(option.value)}`}
+                />
                 {option.label}
               </div>
             </SelectItem>
