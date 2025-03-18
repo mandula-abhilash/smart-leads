@@ -1,6 +1,16 @@
 "use client";
 
-import { Star, TrendingUp, AlertCircle, Globe, Phone } from "lucide-react";
+import {
+  Star,
+  TrendingUp,
+  AlertCircle,
+  Globe,
+  Phone,
+  BarChart2,
+  Award,
+  Users,
+  Image,
+} from "lucide-react";
 import { Button } from "../ui/button";
 
 function formatType(type) {
@@ -12,28 +22,115 @@ function formatType(type) {
 
 function calculateOnlinePresenceScore(business) {
   let score = 0;
+  let maxScore = 0;
+  let breakdown = {};
 
-  // Website presence
-  if (business.website) score += 25;
-
-  // Reviews count and quality
-  if (business.user_ratings_total) {
-    score += Math.min(25, business.user_ratings_total / 4); // Up to 25 points
-    if (business.rating) {
-      score += business.rating * 5; // Up to 25 points (5 * 5)
-    }
+  // Website presence (30 points max)
+  maxScore += 30;
+  if (business.website) {
+    const isComplete = business.website.includes(
+      business.name.toLowerCase().replace(/\s+/g, "")
+    );
+    score += 30; // Base points for having a website
+    breakdown.website = {
+      score: 30,
+      maxScore: 30,
+      details: "Has a business website",
+    };
+  } else {
+    breakdown.website = {
+      score: 0,
+      maxScore: 30,
+      details: "No website found",
+    };
   }
 
-  // Photos presence
+  // Reviews and Rating (35 points max)
+  maxScore += 35;
+  let reviewScore = 0;
+  if (business.user_ratings_total && business.rating) {
+    // Rating quality (15 points max)
+    const ratingScore = Math.min(15, business.rating * 3);
+    reviewScore += ratingScore;
+
+    // Review quantity (20 points max)
+    // Scale: 0-10 reviews (5pts), 11-50 reviews (10pts), 51-100 reviews (15pts), 100+ reviews (20pts)
+    let quantityScore = 0;
+    if (business.user_ratings_total >= 100) quantityScore = 20;
+    else if (business.user_ratings_total >= 51) quantityScore = 15;
+    else if (business.user_ratings_total >= 11) quantityScore = 10;
+    else if (business.user_ratings_total > 0) quantityScore = 5;
+
+    reviewScore += quantityScore;
+    score += reviewScore;
+
+    breakdown.reviews = {
+      score: reviewScore,
+      maxScore: 35,
+      details: `${business.rating}★ rating with ${business.user_ratings_total} reviews`,
+    };
+  } else {
+    breakdown.reviews = {
+      score: 0,
+      maxScore: 35,
+      details: "No reviews or rating",
+    };
+  }
+
+  // Photos (15 points max)
+  maxScore += 15;
   if (business.photos?.length) {
-    score += Math.min(15, business.photos.length * 2);
+    const photoScore = Math.min(15, business.photos.length * 3);
+    score += photoScore;
+    breakdown.photos = {
+      score: photoScore,
+      maxScore: 15,
+      details: `${business.photos.length} photos available`,
+    };
+  } else {
+    breakdown.photos = {
+      score: 0,
+      maxScore: 15,
+      details: "No photos found",
+    };
   }
 
-  // Additional factors
-  if (business.opening_hours) score += 5;
-  if (business.phone) score += 5;
+  // Contact Information (20 points max)
+  maxScore += 20;
+  let contactScore = 0;
+  let contactDetails = [];
 
-  return Math.min(100, Math.round(score));
+  if (business.phone) {
+    contactScore += 10;
+    contactDetails.push("phone number");
+  }
+  if (business.address) {
+    contactScore += 5;
+    contactDetails.push("address");
+  }
+  if (business.opening_hours) {
+    contactScore += 5;
+    contactDetails.push("business hours");
+  }
+
+  score += contactScore;
+  breakdown.contact = {
+    score: contactScore,
+    maxScore: 20,
+    details: contactDetails.length
+      ? `Has ${contactDetails.join(", ")}`
+      : "Limited contact information",
+  };
+
+  // Calculate final percentage
+  const finalScore = Math.round((score / maxScore) * 100);
+
+  return {
+    score: finalScore,
+    breakdown: breakdown,
+    totalScore: score,
+    maxPossibleScore: maxScore,
+  };
 }
 
 function findCompetitors(selectedBusiness, allBusinesses) {
@@ -49,8 +146,8 @@ function findCompetitors(selectedBusiness, allBusinesses) {
   // Sort by better online presence (composite score)
   return competitors
     .sort((a, b) => {
-      const aScore = calculateOnlinePresenceScore(a);
-      const bScore = calculateOnlinePresenceScore(b);
+      const aScore = calculateOnlinePresenceScore(a).score;
+      const bScore = calculateOnlinePresenceScore(b).score;
       return bScore - aScore;
     })
     .slice(0, 3); // Top 3 competitors
@@ -62,8 +159,11 @@ export default function CompetitorAnalysis({ business, allBusinesses }) {
   const competitors = findCompetitors(business, allBusinesses);
   if (competitors.length === 0) return null;
 
-  const businessScore = calculateOnlinePresenceScore(business);
-  const competitorScores = competitors.map(calculateOnlinePresenceScore);
+  const businessScoreData = calculateOnlinePresenceScore(business);
+  const businessScore = businessScoreData.score;
+  const competitorScores = competitors.map(
+    (comp) => calculateOnlinePresenceScore(comp).score
+  );
   const avgCompetitorScore = Math.round(
     competitorScores.reduce((a, b) => a + b, 0) / competitorScores.length
   );
@@ -81,30 +181,67 @@ export default function CompetitorAnalysis({ business, allBusinesses }) {
       <h3 className="text-lg font-semibold">Competitor Analysis</h3>
 
       {/* Online Presence Score Comparison */}
-      <div className="bg-muted/30 p-4 rounded-lg">
-        <h4 className="text-sm font-medium mb-3">Online Presence Score</h4>
-        <div className="space-y-3">
+      <div className="rounded-lg bg-muted/30">
+        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <BarChart2 className="h-4 w-4" />
+          Online Presence Score
+        </h4>
+        <div className="space-y-4 p-4">
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span>Your Business</span>
               <span className="font-medium">{businessScore}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div className="w-full bg-muted/50 rounded-full h-2">
               <div
                 className="h-2 rounded-full bg-primary"
                 style={{ width: `${businessScore}%` }}
               />
             </div>
+            {/* Score Breakdown */}
+            <div className="mt-3 space-y-2">
+              {Object.entries(businessScoreData.breakdown).map(
+                ([key, data]) => (
+                  <div
+                    key={key}
+                    className="flex items-center gap-2 bg-muted/50 p-2 rounded-md"
+                  >
+                    {key === "website" && (
+                      <Globe className="h-4 w-4 shrink-0" />
+                    )}
+                    {key === "reviews" && <Star className="h-4 w-4 shrink-0" />}
+                    {key === "photos" && <Image className="h-4 w-4 shrink-0" />}
+                    {key === "contact" && (
+                      <Phone className="h-4 w-4 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium capitalize">{key}</span>
+                        <span>
+                          {data.score}/{data.maxScore}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {data.details}
+                      </p>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
           </div>
 
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span>Best Competitor</span>
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                <span>Best Competitor</span>
+              </div>
               <span className="font-medium">{bestCompetitorScore}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div className="w-full bg-muted/50 rounded-full h-2">
               <div
-                className="h-2 rounded-full bg-green-500"
+                className="h-2 rounded-full bg-green-600"
                 style={{ width: `${bestCompetitorScore}%` }}
               />
             </div>
@@ -112,10 +249,13 @@ export default function CompetitorAnalysis({ business, allBusinesses }) {
 
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span>Average Competitor</span>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>Average Competitor</span>
+              </div>
               <span className="font-medium">{avgCompetitorScore}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div className="w-full bg-muted/50 rounded-full h-2">
               <div
                 className="h-2 rounded-full bg-amber-500"
                 style={{ width: `${avgCompetitorScore}%` }}
@@ -127,7 +267,7 @@ export default function CompetitorAnalysis({ business, allBusinesses }) {
 
       {/* Areas for Improvement */}
       <div>
-        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
           Areas for Improvement
         </h4>
@@ -177,7 +317,7 @@ export default function CompetitorAnalysis({ business, allBusinesses }) {
 
       {/* Top Competitors */}
       <div>
-        <h4 className="text-sm font-medium mb-3">Top Competitors</h4>
+        <h4 className="text-sm font-semibold mb-3">Top Competitors</h4>
         <div className="space-y-3">
           {competitors.map((competitor) => (
             <div
