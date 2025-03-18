@@ -215,13 +215,13 @@ export default function BusinessDetails({ business, isLoading, businesses }) {
           <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-md">
             <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
             <div className="space-y-3">
-              {business.phone && (
+              {business.formatted_phone_number && (
                 <a
-                  href={`tel:${business.phone}`}
+                  href={`tel:${business.formatted_phone_number}`}
                   className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                 >
                   <Phone className="h-4 w-4" />
-                  <span>{business.phone}</span>
+                  <span>{business.formatted_phone_number}</span>
                 </a>
               )}
               {business.website ? (
@@ -241,7 +241,7 @@ export default function BusinessDetails({ business, isLoading, businesses }) {
                 </div>
               )}
               <a
-                href={business.google_maps_url}
+                href={business.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors cursor-pointer"

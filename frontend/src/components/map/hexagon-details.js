@@ -60,19 +60,21 @@ function EmptyState() {
   );
 }
 
-export default function HexagonDetails({ hexagon, businesses, isLoading }) {
+export default function HexagonDetails({
+  hexagon,
+  businesses,
+  isLoading,
+  onBusinessClick,
+}) {
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const { setSelectedBusiness } = useBusinessContext();
 
   const handleBusinessClick = (business) => {
     setSelectedBusinessId(business.place_id);
-    // Simulate loading state
     setTimeout(() => {
-      setSelectedBusiness(business);
+      onBusinessClick(business);
       setSelectedBusinessId(null);
-      // Scroll to top of business details
-      document.querySelector(".business-details")?.scrollTo(0, 0);
-    }, 500);
+    }, 300);
   };
 
   if (!hexagon) return <EmptyState />;
@@ -105,18 +107,11 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
               <div>
                 <div className="text-sm text-muted-foreground">Status</div>
                 <div className="flex items-center gap-2">
-                  {showLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Loading businesses...</span>
-                    </>
-                  ) : showBusinesses ? (
-                    `${businesses.length} businesses found`
-                  ) : showNoBusinesses ? (
-                    "No businesses found"
-                  ) : (
-                    "Not yet fetched"
-                  )}
+                  {showBusinesses
+                    ? `${businesses.length} businesses found`
+                    : showNoBusinesses
+                    ? "No businesses found"
+                    : "Not yet fetched"}
                 </div>
               </div>
             </div>

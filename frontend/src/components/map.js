@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   GoogleMap,
   useLoadScript,
@@ -73,6 +73,19 @@ export default function Map() {
   const [zoom, setZoom] = useState(15);
   const [searchQuery, setSearchQuery] = useState("");
   const [markers, setMarkers] = useState([]);
+  const [activeMarker, setActiveMarker] = useState(null);
+
+  // Animation interval ref
+  const animationRef = useRef(null);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
+      }
+    };
+  }, []);
 
   // Update markers whenever businesses change
   useEffect(() => {
@@ -167,9 +180,47 @@ export default function Map() {
     [map]
   );
 
-  const handleMarkerClick = useCallback(
+  const animateMarker = useCallback((business) => {
+    setActiveMarker(business.place_id);
+    let scale = 8;
+    let increasing = true;
+
+    // Clear any existing animation
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+    }
+
+    // Create new animation
+    animationRef.current = setInterval(() => {
+      if (increasing) {
+        scale += 1;
+        if (scale >= 12) {
+          increasing = false;
+        }
+      } else {
+        scale -= 1;
+        if (scale <= 8) {
+          increasing = true;
+        }
+      }
+      setActiveMarker((current) =>
+        current === business.place_id
+          ? `${business.place_id}-${scale}`
+          : current
+      );
+    }, 50);
+
+    // Stop animation after 2 seconds
+    setTimeout(() => {
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
+        setActiveMarker(null);
+      }
+    }, 2000);
+  }, []);
+
+  const centerOnBusiness = useCallback(
     (business) => {
-      setSelectedBusiness(business);
       if (map && business.location) {
         map.panTo({
           lat: business.location.lat,
@@ -180,9 +231,28 @@ export default function Map() {
         if (map.getZoom() < targetZoom) {
           map.setZoom(targetZoom);
         }
+
+        // Animate the marker
+        animateMarker(business);
       }
     },
-    [map, setSelectedBusiness]
+    [map, animateMarker]
+  );
+
+  const handleMarkerClick = useCallback(
+    (business) => {
+      setSelectedBusiness(business);
+      centerOnBusiness(business);
+    },
+    [setSelectedBusiness, centerOnBusiness]
+  );
+
+  const handleHexagonBusinessClick = useCallback(
+    (business) => {
+      setSelectedBusiness(business);
+      centerOnBusiness(business);
+    },
+    [setSelectedBusiness, centerOnBusiness]
   );
 
   const handleMapTypeChange = useCallback(
@@ -244,6 +314,7 @@ export default function Map() {
             hexagon={selectedHexagon}
             businesses={businesses}
             isLoading={isLoading}
+            onBusinessClick={handleHexagonBusinessClick}
           />
         ) : (
           <div className="p-6 text-center text-muted-foreground">
@@ -286,24 +357,33 @@ export default function Map() {
               }}
             />
           ))}
-          {markers.map((business) => (
-            <Marker
-              key={business.place_id}
-              position={{
-                lat: business.location.lat,
-                lng: business.location.lng,
-              }}
-              onClick={() => handleMarkerClick(business)}
-              icon={{
-                path: window.google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: getStatusColor(business.status),
-                fillOpacity: 1,
-                strokeWeight: 2,
-                strokeColor: "#ffffff",
-              }}
-            />
-          ))}
+          {markers.map((business) => {
+            const isActive = activeMarker?.startsWith(business.place_id);
+            const scale = isActive
+              ? parseInt(activeMarker.split("-")[1]) || 8
+              : selectedBusiness?.place_id === business.place_id
+              ? 10
+              : 8;
+
+            return (
+              <Marker
+                key={business.place_id}
+                position={{
+                  lat: business.location.lat,
+                  lng: business.location.lng,
+                }}
+                onClick={() => handleMarkerClick(business)}
+                icon={{
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  scale,
+                  fillColor: getStatusColor(business.status),
+                  fillOpacity: 1,
+                  strokeWeight: 2,
+                  strokeColor: "#ffffff",
+                }}
+              />
+            );
+          })}
         </GoogleMap>
       </div>
 

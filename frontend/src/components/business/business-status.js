@@ -18,9 +18,6 @@ import {
   SelectValue,
 } from "../ui/select";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-
 const STATUS_OPTIONS = [
   { value: "new", label: "New", icon: Star },
   { value: "contacted", label: "Contacted", icon: PhoneCall },
@@ -63,23 +60,7 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
 
     setIsUpdating(true);
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/api/hexagons/businesses/${placeId}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update status");
-      }
-
-      const updatedBusiness = await response.json();
-      onStatusChange(updatedBusiness);
+      await onStatusChange({ place_id: placeId, status: newStatus });
     } catch (error) {
       console.error("Error updating business status:", error);
     } finally {
@@ -87,37 +68,41 @@ export default function BusinessStatus({ status, placeId, onStatusChange }) {
     }
   };
 
-  const StatusIcon = getStatusIcon(status);
+  const CurrentIcon = getStatusIcon(status);
 
   return (
-    <div className="flex items-center gap-2">
-      {isUpdating ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <StatusIcon className={`h-4 w-4 ${getStatusColor(status)}`} />
-      )}
-      <Select value={status} onValueChange={handleStatusChange}>
-        <SelectTrigger className="w-[140px]">
+    <Select
+      value={status}
+      onValueChange={handleStatusChange}
+      disabled={isUpdating}
+    >
+      <SelectTrigger className="w-[140px]">
+        <div className="flex items-center gap-2">
+          {isUpdating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <CurrentIcon className={`h-4 w-4 ${getStatusColor(status)}`} />
+          )}
           <SelectValue placeholder="Select status" />
-        </SelectTrigger>
-        <SelectContent>
-          {STATUS_OPTIONS.map((option) => {
-            const Icon = option.icon;
-            return (
-              <SelectItem
-                key={option.value}
-                value={option.value}
-                className="flex items-center gap-2"
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className={`h-4 w-4 ${getStatusColor(option.value)}`} />
-                  {option.label}
-                </div>
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
-    </div>
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        {STATUS_OPTIONS.map((option) => {
+          const Icon = option.icon;
+          return (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className="flex items-center gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <Icon className={`h-4 w-4 ${getStatusColor(option.value)}`} />
+                {option.label}
+              </div>
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
   );
 }

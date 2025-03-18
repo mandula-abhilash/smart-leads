@@ -31,7 +31,6 @@ export function BusinessProvider({ children }) {
 
       const data = await response.json();
 
-      // Update state immediately after receiving data
       setSelectedHexagon({
         ...data.hexagon,
         businesses_fetched: Boolean(data.hexagon.businesses_fetched),
@@ -64,7 +63,6 @@ export function BusinessProvider({ children }) {
       setAreaAnalysis(null);
       setSelectedBusiness(null);
 
-      // Update hexagon state immediately to show loading
       setSelectedHexagon({
         hexagon_id: hexagonId,
         businesses_fetched: false,
@@ -88,7 +86,6 @@ export function BusinessProvider({ children }) {
 
       const data = await response.json();
 
-      // Update state immediately with the new data
       setSelectedHexagon({
         ...data.hexagon,
         businesses_fetched: true,
@@ -119,16 +116,16 @@ export function BusinessProvider({ children }) {
   }, []);
 
   const updateBusinessStatus = useCallback(
-    async (placeId, status) => {
+    async (business) => {
       try {
         const response = await fetch(
-          `${BACKEND_URL}/api/hexagons/businesses/${placeId}/status`,
+          `${BACKEND_URL}/api/hexagons/businesses/${business.place_id}/status`,
           {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ status }),
+            body: JSON.stringify({ status: business.status }),
           }
         );
 
@@ -138,16 +135,12 @@ export function BusinessProvider({ children }) {
 
         const updatedBusiness = await response.json();
 
-        // Update businesses state immediately
         setBusinesses((prevBusinesses) =>
-          prevBusinesses.map((business) =>
-            business.place_id === updatedBusiness.place_id
-              ? updatedBusiness
-              : business
+          prevBusinesses.map((b) =>
+            b.place_id === updatedBusiness.place_id ? updatedBusiness : b
           )
         );
 
-        // Update selected business if it's the one being modified
         if (selectedBusiness?.place_id === updatedBusiness.place_id) {
           setSelectedBusiness(updatedBusiness);
         }
