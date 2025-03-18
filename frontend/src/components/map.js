@@ -74,6 +74,7 @@ export default function Map() {
     selectedBusiness,
     selectedHexagon,
     isLoading,
+    existingHexagons,
     setSelectedBusiness,
     fetchHexagonBusinesses,
     clearSelection,
@@ -348,27 +349,33 @@ export default function Map() {
           onLoad={handleMapLoad}
           onIdle={handleMapIdle}
         >
-          {hexagons.map((hexagon) => (
-            <Polygon
-              key={hexagon.id}
-              paths={hexagon.paths}
-              onClick={() => handleHexagonClick(hexagon)}
-              options={{
-                fillColor:
-                  selectedHexagon?.hexagon_id === hexagon.id
+          {hexagons.map((hexagon) => {
+            const isExisting = existingHexagons.has(hexagon.id);
+            const isSelected = selectedHexagon?.hexagon_id === hexagon.id;
+
+            return (
+              <Polygon
+                key={hexagon.id}
+                paths={hexagon.paths}
+                onClick={() => handleHexagonClick(hexagon)}
+                options={{
+                  fillColor: isSelected
                     ? "#3b82f6"
+                    : isExisting
+                    ? "#22c55e"
                     : "#6366f1",
-                fillOpacity: 0.2,
-                strokeColor:
-                  selectedHexagon?.hexagon_id === hexagon.id
+                  fillOpacity: 0.2,
+                  strokeColor: isSelected
                     ? "#2563eb"
+                    : isExisting
+                    ? "#16a34a"
                     : "#4f46e5",
-                strokeWeight:
-                  selectedHexagon?.hexagon_id === hexagon.id ? 2 : 1,
-                strokeOpacity: 0.8,
-              }}
-            />
-          ))}
+                  strokeWeight: isSelected ? 2 : 1,
+                  strokeOpacity: 0.8,
+                }}
+              />
+            );
+          })}
           {markers.map((business) => {
             const isActive = activeMarker?.startsWith(business.place_id);
             const scale = isActive

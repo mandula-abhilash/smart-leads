@@ -3,6 +3,7 @@ import {
   getHexagonBusinesses,
   createHexagonBusinesses,
   updateBusinessStatus,
+  getExistingHexagons,
 } from "../controllers/hexagonController.js";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.post("/:hexagonId/businesses", createHexagonBusinesses);
 
 // Update business status
 router.put("/businesses/:placeId/status", updateBusinessStatus);
+
+// Get all existing hexagon IDs
+router.get("/existing", getExistingHexagons);
 
 export default router;

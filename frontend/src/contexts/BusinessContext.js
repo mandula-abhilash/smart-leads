@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
@@ -13,6 +19,25 @@ export function BusinessProvider({ children }) {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [existingHexagons, setExistingHexagons] = useState(new Set());
+
+  const fetchExistingHexagons = useCallback(async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/hexagons/existing`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const hexagonIds = await response.json();
+      setExistingHexagons(new Set(hexagonIds));
+    } catch (error) {
+      console.error("Error fetching existing hexagons:", error);
+    }
+  }, []);
+
+  // Fetch existing hexagons when the context is first created
+  useEffect(() => {
+    fetchExistingHexagons();
+  }, [fetchExistingHexagons]);
 
   const fetchHexagonBusinesses = useCallback(async (hexagonId) => {
     try {
@@ -40,6 +65,9 @@ export function BusinessProvider({ children }) {
 
       setBusinesses(data.businesses || []);
       setAreaAnalysis(data.areaAnalysis);
+
+      // Add this hexagon to the set of existing hexagons
+      setExistingHexagons((prev) => new Set([...prev, hexagonId]));
 
       return data;
     } catch (error) {
@@ -96,6 +124,9 @@ export function BusinessProvider({ children }) {
 
       setBusinesses(data.businesses || []);
       setAreaAnalysis(data.areaAnalysis);
+
+      // Add this hexagon to the set of existing hexagons
+      setExistingHexagons((prev) => new Set([...prev, hexagonId]));
 
       return data;
     } catch (error) {
@@ -179,6 +210,7 @@ export function BusinessProvider({ children }) {
     selectedBusiness,
     selectedHexagon,
     isLoading,
+    existingHexagons,
     setSelectedBusiness,
     fetchHexagonBusinesses,
     createHexagonBusinesses,

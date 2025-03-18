@@ -2,6 +2,7 @@ import {
   getHexagonById,
   updateHexagonStatus,
   createHexagon,
+  getAllHexagonIds,
 } from "../models/hexagon.js";
 import {
   createBusiness,
@@ -183,6 +184,19 @@ export async function updateBusinessStatus(req, res) {
     console.error("Error updating business status:", error);
     res.status(500).json({
       error: "Failed to update business status",
+      details: error.message,
+    });
+  }
+}
+
+export async function getExistingHexagons(req, res) {
+  try {
+    const hexagonIds = await getAllHexagonIds();
+    res.json(hexagonIds);
+  } catch (error) {
+    console.error("Error fetching existing hexagons:", error);
+    res.status(500).json({
+      error: "Failed to fetch existing hexagons",
       details: error.message,
     });
   }

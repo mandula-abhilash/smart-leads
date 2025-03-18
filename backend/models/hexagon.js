@@ -53,21 +53,8 @@ export async function updateHexagonStatus(hexagonId, status) {
   });
 }
 
-export async function getHexagonsInBounds(bounds) {
-  const { north, south, east, west } = bounds;
-
+export async function getAllHexagonIds() {
   return db("vd_sw_hexagons")
-    .select(
-      "hexagon_id",
-      "businesses_fetched",
-      "no_businesses_found",
-      db.raw("ST_AsGeoJSON(geometry) as geometry"),
-      "center"
-    )
-    .whereRaw("ST_Intersects(geometry, ST_MakeEnvelope(?, ?, ?, ?, 4326))", [
-      west,
-      south,
-      east,
-      north,
-    ]);
+    .select("hexagon_id")
+    .then((hexagons) => hexagons.map((h) => h.hexagon_id));
 }
