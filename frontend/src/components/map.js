@@ -135,16 +135,6 @@ export default function Map() {
         setSelectedBusiness(null);
         setIsLoading(true);
 
-        const initialHexagonState = {
-          hexagon_id: hexagon.id,
-          center: hexagon.center,
-          businesses_fetched: false,
-          no_businesses_found: false,
-        };
-
-        setSelectedHexagon(initialHexagonState);
-        centerAndZoomOnHexagon(hexagon);
-
         const response = await fetch(
           `${BACKEND_URL}/api/hexagons/${hexagon.id}/businesses`
         );
@@ -155,13 +145,18 @@ export default function Map() {
 
         const data = await response.json();
 
-        setSelectedHexagon(data.hexagon);
+        // Update hexagon state
+        setSelectedHexagon({
+          ...data.hexagon,
+          businesses_fetched: Boolean(data.hexagon.businesses_fetched),
+          no_businesses_found: Boolean(data.hexagon.no_businesses_found),
+        });
 
+        centerAndZoomOnHexagon(hexagon);
+
+        // Update businesses and analysis if available
         if (data.businesses?.length > 0) {
-          const validBusinesses = data.businesses.filter(
-            (business) => business.location?.lat && business.location?.lng
-          );
-          setBusinesses(validBusinesses);
+          setBusinesses(data.businesses);
           setAreaAnalysis(data.areaAnalysis);
         }
       } catch (error) {
@@ -189,10 +184,8 @@ export default function Map() {
 
   const handleMarkerClick = useCallback(
     (business) => {
-      if (!business.location?.lat || !business.location?.lng) return;
-
       setSelectedBusiness(business);
-      if (map) {
+      if (map && business.location) {
         map.panTo({
           lat: business.location.lat,
           lng: business.location.lng,
@@ -218,9 +211,6 @@ export default function Map() {
   );
 
   const handleBusinessStatusChange = useCallback((updatedBusiness) => {
-    if (!updatedBusiness.location?.lat || !updatedBusiness.location?.lng)
-      return;
-
     setBusinesses((prevBusinesses) =>
       prevBusinesses.map((business) =>
         business.place_id === updatedBusiness.place_id
@@ -231,19 +221,21 @@ export default function Map() {
   }, []);
 
   const handleFetchComplete = useCallback((data) => {
-    if (data.businesses?.length > 0) {
-      const validBusinesses = data.businesses.filter(
-        (business) => business.location?.lat && business.location?.lng
-      );
-      setBusinesses(validBusinesses);
-      setAreaAnalysis(data.areaAnalysis);
-    }
+    if (!data) return;
 
-    setSelectedHexagon((prev) => ({
-      ...prev,
-      businesses_fetched: true,
-      no_businesses_found: !data.businesses?.length,
-    }));
+    setSelectedHexagon({
+      ...data.hexagon,
+      businesses_fetched: Boolean(data.hexagon.businesses_fetched),
+      no_businesses_found: Boolean(data.hexagon.no_businesses_found),
+    });
+
+    if (data.businesses?.length > 0) {
+      setBusinesses(data.businesses);
+      setAreaAnalysis(data.areaAnalysis);
+    } else {
+      setBusinesses([]);
+      setAreaAnalysis(null);
+    }
   }, []);
 
   if (loadError) {
@@ -341,7 +333,6 @@ export default function Map() {
           ))}
           {businesses?.map((business) => {
             if (!business.location?.lat || !business.location?.lng) return null;
-
             const StatusIcon = getStatusIcon(business.status);
             return (
               <Marker

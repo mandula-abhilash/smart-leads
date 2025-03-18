@@ -7,16 +7,27 @@ import { Loader2 } from "lucide-react";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-export default function FetchBusinessesButton({ hexagonId, onFetchComplete }) {
+export default function FetchBusinessesButton({
+  hexagonId,
+  onFetchComplete,
+  onFetchStart,
+}) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFetch = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
+      if (onFetchStart) {
+        onFetchStart();
+      }
+
       const response = await fetch(
         `${BACKEND_URL}/api/hexagons/${hexagonId}/businesses`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -25,7 +36,9 @@ export default function FetchBusinessesButton({ hexagonId, onFetchComplete }) {
       }
 
       const data = await response.json();
-      onFetchComplete(data);
+      if (onFetchComplete) {
+        onFetchComplete(data);
+      }
     } catch (error) {
       console.error("Error fetching businesses:", error);
     } finally {

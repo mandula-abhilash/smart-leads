@@ -57,21 +57,17 @@ export async function createBusiness(businessData) {
         price_level,
         opening_hours: jsonData.opening_hours,
         reviews: jsonData.reviews,
-        geometry: db.raw("ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)", {
-          lng: location.lng,
-          lat: location.lat,
-        }),
+        geometry: db.raw("ST_SetSRID(ST_MakePoint(?, ?), 4326)", [
+          location.lng,
+          location.lat,
+        ]),
         hexagon_id,
         opportunity_score,
         insights: jsonData.insights,
         priority,
         updated_at: db.fn.now(),
       })
-      .returning([
-        "*",
-        db.raw("ST_X(geometry) as lng"),
-        db.raw("ST_Y(geometry) as lat"),
-      ]);
+      .returning("*");
   }
 
   // Create new business
@@ -92,10 +88,10 @@ export async function createBusiness(businessData) {
       price_level,
       opening_hours: jsonData.opening_hours,
       reviews: jsonData.reviews,
-      geometry: db.raw("ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)", {
-        lng: location.lng,
-        lat: location.lat,
-      }),
+      geometry: db.raw("ST_SetSRID(ST_MakePoint(?, ?), 4326)", [
+        location.lng,
+        location.lat,
+      ]),
       hexagon_id,
       opportunity_score,
       insights: jsonData.insights,
@@ -104,20 +100,16 @@ export async function createBusiness(businessData) {
       created_at: db.fn.now(),
       updated_at: db.fn.now(),
     })
-    .returning([
-      "*",
-      db.raw("ST_X(geometry) as lng"),
-      db.raw("ST_Y(geometry) as lat"),
-    ]);
+    .returning("*");
 }
 
 export async function getBusinessesByHexagon(hexagonId) {
   return db("vd_sw_businesses")
-    .select([
+    .select(
       "*",
-      db.raw("ST_X(geometry) as lng"),
-      db.raw("ST_Y(geometry) as lat"),
-    ])
+      db.raw("ST_X(geometry::geometry) as lng"),
+      db.raw("ST_Y(geometry::geometry) as lat")
+    )
     .where("hexagon_id", hexagonId)
     .then((businesses) =>
       businesses.map((business) => {
@@ -153,58 +145,35 @@ export async function getBusinessesByHexagon(hexagonId) {
 
 export async function getBusinessById(placeId) {
   return db("vd_sw_businesses")
-    .select([
+    .select(
       "*",
-      db.raw("ST_X(geometry) as lng"),
-      db.raw("ST_Y(geometry) as lat"),
-    ])
+      db.raw("ST_X(geometry::geometry) as lng"),
+      db.raw("ST_Y(geometry::geometry) as lat")
+    )
     .where("place_id", placeId)
     .first()
-    .then((business) => {
-      if (!business) return null;
-
-      // Extract lat/lng from geometry
-      const lat = parseFloat(business.lat);
-      const lng = parseFloat(business.lng);
-
-      return {
-        ...business,
-        photos: business.photos ? JSON.parse(business.photos) : null,
-        opening_hours: business.opening_hours
-          ? JSON.parse(business.opening_hours)
-          : null,
-        reviews: business.reviews ? JSON.parse(business.reviews) : null,
-        insights: business.insights ? JSON.parse(business.insights) : null,
-        location: {
-          lat,
-          lng,
-        },
-      };
-    });
+    .then((business) =>
+      business
+        ? {
+            ...business,
+            photos: business.photos ? JSON.parse(business.photos) : null,
+            opening_hours: business.opening_hours
+              ? JSON.parse(business.opening_hours)
+              : null,
+            reviews: business.reviews ? JSON.parse(business.reviews) : null,
+            insights: business.insights ? JSON.parse(business.insights) : null,
+            location: {
+              lat: parseFloat(business.lat),
+              lng: parseFloat(business.lng),
+            },
+          }
+        : null
+    );
 }
 
 export async function updateBusinessStatus(placeId, status) {
-  return db("vd_sw_businesses")
-    .where("place_id", placeId)
-    .update({
-      status,
-      updated_at: db.fn.now(),
-    })
-    .returning([
-      "*",
-      db.raw("ST_X(geometry) as lng"),
-      db.raw("ST_Y(geometry) as lat"),
-    ])
-    .then((results) => {
-      const business = results[0];
-      if (!business) return null;
-
-      return {
-        ...business,
-        location: {
-          lat: parseFloat(business.lat),
-          lng: parseFloat(business.lng),
-        },
-      };
-    });
+  return db("vd_sw_businesses").where("place_id", placeId).update({
+    status,
+    updated_at: db.fn.now(),
+  });
 }
