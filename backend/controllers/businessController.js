@@ -1,5 +1,6 @@
 import axios from "axios";
 import ALLOWED_TYPES from "../constants/allowedTypes.js";
+import { processBusinesses } from "../services/businessAnalyzer.js";
 
 const fetchPlaceDetails = async (placeId) => {
   try {
@@ -97,7 +98,7 @@ export const fetchBusinesses = async (req, res) => {
       "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
     const initialParams = {
       location: `${lat},${lng}`,
-      radius: 500, // Adjusted to ~500 to match H3 resolution 8 hexagon size
+      radius: 500,
       key: process.env.GOOGLE_PLACES_API_KEY,
       type: ALLOWED_TYPES,
     };
@@ -156,9 +157,11 @@ export const fetchBusinesses = async (req, res) => {
       })
     );
 
+    // Process and analyze the businesses
+    const processedData = processBusinesses(detailedBusinesses);
+
     res.json({
-      businesses: detailedBusinesses,
-      total_results: detailedBusinesses.length,
+      ...processedData,
       status: "OK",
     });
   } catch (error) {

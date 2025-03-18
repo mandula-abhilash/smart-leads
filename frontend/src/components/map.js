@@ -46,6 +46,7 @@ export default function Map() {
   const [selectedHexagon, setSelectedHexagon] = useState(null);
   const [map, setMap] = useState(null);
   const [businesses, setBusinesses] = useState(null);
+  const [areaAnalysis, setAreaAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [mapType, setMapType] = useState("hybrid");
@@ -93,6 +94,7 @@ export default function Map() {
     setSelectedHexagon(hexagon);
     setIsLoading(true);
     setBusinesses(null);
+    setAreaAnalysis(null);
     setSelectedBusiness(null);
 
     try {
@@ -106,6 +108,7 @@ export default function Map() {
 
       const data = await response.json();
       setBusinesses(data.businesses);
+      setAreaAnalysis(data.areaAnalysis);
     } catch (error) {
       console.error("Error fetching businesses:", error);
     } finally {
@@ -126,6 +129,7 @@ export default function Map() {
   const handleCloseSidebar = useCallback(() => {
     setSelectedHexagon(null);
     setBusinesses(null);
+    setAreaAnalysis(null);
     setSelectedBusiness(null);
   }, []);
 
@@ -174,6 +178,7 @@ export default function Map() {
     <div className="relative w-full h-screen">
       <BusinessSidebar
         businesses={businesses}
+        areaAnalysis={areaAnalysis}
         isLoading={isLoading}
         onClose={handleCloseSidebar}
         selectedBusiness={selectedBusiness}
