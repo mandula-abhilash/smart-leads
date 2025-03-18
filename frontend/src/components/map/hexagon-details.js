@@ -22,14 +22,14 @@ function HexagonDetailsSkeleton() {
           <div className="h-8 bg-muted rounded w-48" />
         </div>
 
-        <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+        <div className="bg-muted/30 p-4 rounded-lg space-y-3 shadow-md">
           <div className="h-4 bg-muted rounded w-32" />
           <div className="h-4 bg-muted rounded w-48" />
         </div>
 
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-card p-4 rounded-lg space-y-3">
+            <div key={i} className="bg-card p-4 rounded-lg space-y-3 shadow-md">
               <div className="flex justify-between">
                 <div className="h-5 bg-muted rounded w-40" />
                 <div className="h-5 bg-muted rounded w-24" />
@@ -83,7 +83,7 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
             </div>
 
             {/* Hexagon Info */}
-            <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+            <div className="bg-muted/30 p-4 rounded-lg space-y-3 shadow-md">
               <div>
                 <div className="text-sm text-muted-foreground">Hexagon ID</div>
                 <div className="font-mono text-sm">{hexagon.hexagon_id}</div>
@@ -119,12 +119,14 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                     {businesses.map((business) => (
                       <div
                         key={business.place_id}
-                        className="bg-card p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer"
+                        className="bg-card p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg"
                         onClick={() => setSelectedBusiness(business)}
                       >
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4 className="font-medium">{business.name}</h4>
+                            <h4 className="font-medium hover:text-primary transition-colors">
+                              {business.name}
+                            </h4>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {business.types?.slice(0, 3).map((type) => (
                                 <span
@@ -182,7 +184,7 @@ export default function HexagonDetails({ hexagon, businesses, isLoading }) {
                   </div>
                 </div>
               ) : showNoBusinesses ? (
-                <div className="text-center p-8 bg-muted/30 rounded-lg">
+                <div className="text-center p-8 bg-muted/30 rounded-lg shadow-md">
                   <p className="text-muted-foreground">
                     No businesses found in this area
                   </p>
