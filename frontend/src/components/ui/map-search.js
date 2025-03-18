@@ -36,9 +36,9 @@ export default function MapSearch({ onSelectLocation }) {
   };
 
   return (
-    <div className="w-full">
+    <div className="relative w-full">
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 h-5 w-5" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
         <input
           value={value}
           onChange={(e) => {
@@ -47,12 +47,12 @@ export default function MapSearch({ onSelectLocation }) {
           }}
           disabled={!ready}
           placeholder="Search locations..."
-          className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500"
+          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
         />
       </div>
 
       {isOpen && status === "OK" && (
-        <div className="absolute w-full mt-2 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-100 max-h-[300px] overflow-auto z-50">
+        <div className="absolute w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 max-h-[300px] overflow-auto z-50">
           {data.map((suggestion) => {
             const {
               place_id,
@@ -63,10 +63,12 @@ export default function MapSearch({ onSelectLocation }) {
               <button
                 key={place_id}
                 onClick={() => handleSelect(suggestion.description)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50/80 focus:outline-none focus:bg-gray-50/80 transition-colors duration-200"
+                className="w-full px-3 py-2.5 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors duration-200"
               >
-                <div className="font-medium text-gray-900">{main_text}</div>
-                <div className="text-sm text-gray-600">{secondary_text}</div>
+                <div className="font-medium text-sm text-gray-900">
+                  {main_text}
+                </div>
+                <div className="text-xs text-gray-500">{secondary_text}</div>
               </button>
             );
           })}

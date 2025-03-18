@@ -1,14 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Map as MapIcon,
+  Satellite,
+  Mountain,
+  Globe,
+} from "lucide-react";
+import { Button } from "./button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import MapSearch from "./map-search";
 
 const MAP_TYPES = [
-  { id: "roadmap", name: "Road Map" },
-  { id: "satellite", name: "Satellite" },
-  { id: "hybrid", name: "Hybrid" },
-  { id: "terrain", name: "Terrain" },
+  { id: "roadmap", name: "Road Map", icon: MapIcon },
+  { id: "satellite", name: "Satellite", icon: Satellite },
+  { id: "hybrid", name: "Hybrid", icon: Globe },
+  { id: "terrain", name: "Terrain", icon: Mountain },
 ];
 
 export default function MapControlsSidebar({
@@ -16,54 +25,78 @@ export default function MapControlsSidebar({
   onMapTypeChange,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [activeMapType, setActiveMapType] = useState("roadmap");
+
+  const handleMapTypeChange = (typeId) => {
+    setActiveMapType(typeId);
+    onMapTypeChange(typeId);
+  };
 
   return (
     <div
-      className={`fixed left-0 top-0 h-screen bg-white/95 backdrop-blur-sm shadow-2xl border-r border-gray-200 overflow-hidden z-20 transition-all duration-300 ease-in-out ${
-        isExpanded ? "w-96" : "w-16"
+      className={`fixed left-0 top-0 h-screen bg-white/95 backdrop-blur-sm shadow-lg border-r border-gray-200 overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+        isExpanded ? "w-80" : "w-16"
       }`}
     >
-      <button
+      <Button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-l-none rounded-r-xl shadow-lg border border-l-0 border-gray-200"
+        variant="outline"
+        size="icon"
+        className="absolute -right-5 top-1/2 -translate-y-1/2 rounded-full w-10 h-10 bg-white shadow-lg border-gray-200 hover:bg-gray-50 hover:text-gray-900 cursor-pointer"
       >
         {isExpanded ? (
-          <ChevronLeft className="h-5 w-5 text-gray-600" />
+          <ChevronLeft className="h-4 w-4" />
         ) : (
-          <ChevronRight className="h-5 w-5 text-gray-600" />
+          <ChevronRight className="h-4 w-4" />
         )}
-      </button>
+      </Button>
 
-      <div className={`h-full ${isExpanded ? "block" : "hidden"}`}>
-        <div className="p-4 border-b border-gray-200 bg-white/50">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Map Controls
-          </h2>
-          <MapSearch onSelectLocation={onSelectLocation} />
+      <div className={`h-full flex flex-col ${isExpanded ? "px-4" : "px-2"}`}>
+        <div className="py-4 flex-shrink-0">
+          {isExpanded && (
+            <>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Search Location
+              </h2>
+              <MapSearch onSelectLocation={onSelectLocation} />
+            </>
+          )}
         </div>
 
-        <div className="p-4">
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Layers className="h-5 w-5 text-gray-700" />
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Map Type
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 gap-2">
-                {MAP_TYPES.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => onMapTypeChange(type.id)}
-                    className="w-full px-4 py-2 text-left rounded-lg border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+        <div
+          className={`flex ${
+            isExpanded ? "flex-col gap-2" : "flex-col items-center gap-4"
+          } mt-4`}
+        >
+          {MAP_TYPES.map((type) => {
+            const Icon = type.icon;
+            return (
+              <HoverCard key={type.id}>
+                <HoverCardTrigger asChild>
+                  <Button
+                    onClick={() => handleMapTypeChange(type.id)}
+                    variant={activeMapType === type.id ? "secondary" : "ghost"}
+                    className={`
+                      w-full cursor-pointer
+                      ${isExpanded ? "justify-start gap-3" : "h-10 w-10 p-0"}
+                    `}
                   >
-                    <span className="text-gray-700">{type.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+                    <Icon
+                      className={`
+                      ${isExpanded ? "h-5 w-5" : "h-5 w-5"}
+                    `}
+                    />
+                    {isExpanded && <span>{type.name}</span>}
+                  </Button>
+                </HoverCardTrigger>
+                {!isExpanded && (
+                  <HoverCardContent side="right" align="start" className="p-2">
+                    <p className="text-sm font-medium">{type.name}</p>
+                  </HoverCardContent>
+                )}
+              </HoverCard>
+            );
+          })}
         </div>
       </div>
     </div>
