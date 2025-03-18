@@ -159,13 +159,19 @@ export default function Map() {
 
         const data = await response.json();
 
-        console.log(JSON.stringify(data, null, 2));
-
         // Update hexagon data with fetched information
         setSelectedHexagon(data.hexagon);
 
         if (data.businesses?.length > 0) {
-          setBusinesses(data.businesses);
+          // Ensure each business has a valid location
+          const validBusinesses = data.businesses.map((business) => ({
+            ...business,
+            location: {
+              lat: parseFloat(business.lat || business.location?.lat),
+              lng: parseFloat(business.lng || business.location?.lng),
+            },
+          }));
+          setBusinesses(validBusinesses);
           setAreaAnalysis(data.areaAnalysis);
         }
       } catch (error) {
@@ -195,7 +201,7 @@ export default function Map() {
   const handleMarkerClick = useCallback(
     (business) => {
       setSelectedBusiness(business);
-      if (map) {
+      if (map && business.location) {
         map.panTo({
           lat: business.location.lat,
           lng: business.location.lng,
@@ -224,15 +230,35 @@ export default function Map() {
     setBusinesses((prevBusinesses) =>
       prevBusinesses.map((business) =>
         business.place_id === updatedBusiness.place_id
-          ? updatedBusiness
+          ? {
+              ...updatedBusiness,
+              location: {
+                lat: parseFloat(
+                  updatedBusiness.lat || updatedBusiness.location?.lat
+                ),
+                lng: parseFloat(
+                  updatedBusiness.lng || updatedBusiness.location?.lng
+                ),
+              },
+            }
           : business
       )
     );
   }, []);
 
   const handleFetchComplete = useCallback((data) => {
-    setBusinesses(data.businesses);
-    setAreaAnalysis(data.areaAnalysis);
+    if (data.businesses?.length > 0) {
+      // Ensure each business has a valid location
+      const validBusinesses = data.businesses.map((business) => ({
+        ...business,
+        location: {
+          lat: parseFloat(business.lat || business.location?.lat),
+          lng: parseFloat(business.lng || business.location?.lng),
+        },
+      }));
+      setBusinesses(validBusinesses);
+      setAreaAnalysis(data.areaAnalysis);
+    }
     setSelectedHexagon((prev) => ({
       ...prev,
       businesses_fetched: true,
@@ -334,6 +360,7 @@ export default function Map() {
             />
           ))}
           {businesses?.map((business) => {
+            if (!business.location?.lat || !business.location?.lng) return null;
             const StatusIcon = getStatusIcon(business.status);
             return (
               <Marker
