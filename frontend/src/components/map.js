@@ -49,7 +49,7 @@ export default function Map() {
   const [businesses, setBusinesses] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [mapType, setMapType] = useState("roadmap");
+  const [mapType, setMapType] = useState("hybrid");
   const [zoom, setZoom] = useState(15);
 
   const generateHexagons = useCallback((bounds) => {
@@ -209,8 +209,8 @@ export default function Map() {
                   : hexagon.completed
                   ? "#10b981"
                   : "#2563eb",
-              strokeWeight: selectedHexagon?.id === hexagon.id ? 2.5 : 1.5,
-              strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.6,
+              strokeWeight: selectedHexagon?.id === hexagon.id ? 4 : 3,
+              strokeOpacity: selectedHexagon?.id === hexagon.id ? 0.9 : 0.8,
               clickable: true,
             }}
           />

@@ -25,7 +25,7 @@ export default function MapControlsSidebar({
   onMapTypeChange,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [activeMapType, setActiveMapType] = useState("roadmap");
+  const [activeMapType, setActiveMapType] = useState("hybrid");
 
   const handleMapTypeChange = (typeId) => {
     setActiveMapType(typeId);
