@@ -57,7 +57,7 @@ function BusinessCard({ business, isSelected, onClick }) {
 
   return (
     <div
-      className={`bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg relative ${
+      className={`bg-white dark:bg-zinc-800 p-4 rounded-lg transition-all hover:scale-[1.02] cursor-pointer shadow-md hover:shadow-lg relative ${
         isSelected ? "opacity-50" : ""
       }`}
       onClick={onClick}
@@ -72,27 +72,25 @@ function BusinessCard({ business, isSelected, onClick }) {
           {business.name}
         </h4>
 
-        {/* Categories */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {business.types?.slice(0, 3).map((type) => (
-            <span
-              key={type}
-              className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
-            >
-              {formatType(type)}
-            </span>
-          ))}
-          {business.types?.length > 3 && (
-            <span className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground">
-              +{business.types.length - 3}
-            </span>
-          )}
-        </div>
-
-        {/* Score and Progress Bar */}
-        <div className="flex items-center justify-end text-sm mb-2">
+        {/* Categories and Score */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap gap-1 flex-1 mr-3">
+            {business.types?.slice(0, 3).map((type) => (
+              <span
+                key={type}
+                className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
+              >
+                {formatType(type)}
+              </span>
+            ))}
+            {business.types?.length > 3 && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground">
+                +{business.types.length - 3}
+              </span>
+            )}
+          </div>
           <span
-            className={`font-medium ${
+            className={`text-sm font-medium whitespace-nowrap ${
               business.analysis.opportunityScore > 70
                 ? "text-green-600"
                 : business.analysis.opportunityScore > 40
@@ -103,6 +101,8 @@ function BusinessCard({ business, isSelected, onClick }) {
             {business.analysis.opportunityScore}%
           </span>
         </div>
+
+        {/* Progress Bar */}
         <div className="w-full bg-zinc-100 dark:bg-zinc-700 rounded-full h-1.5">
           <div
             className={`h-1.5 rounded-full ${
