@@ -16,16 +16,8 @@ function HexagonDetailsSkeleton() {
   return (
     <div className="animate-pulse h-[calc(100vh-116px)] bg-zinc-50/50 dark:bg-zinc-900/50">
       <div className="p-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-6 w-6 bg-muted rounded" />
-          <div className="h-8 bg-muted rounded w-48" />
-        </div>
-
-        <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 shadow-md">
-          <div className="h-4 bg-muted rounded w-32" />
-          <div className="h-4 bg-muted rounded w-48" />
-        </div>
-
+        <div className="h-8 bg-muted rounded w-48" />
+        <div className="h-4 bg-muted rounded w-32" />
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div
@@ -163,26 +155,17 @@ export default function HexagonDetails({
         <>
           {/* Header */}
           <div className="p-6 border-b bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <Hexagon className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-semibold">Hexagon Details</h2>
+            <div className="text-xl font-semibold mb-2">
+              {showBusinesses
+                ? `${businesses.length} Businesses Found`
+                : showNoBusinesses
+                ? "No Businesses Found"
+                : "Fetching Businesses..."}
             </div>
-
-            {/* Hexagon Info */}
-            <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg space-y-3 shadow-md">
-              <div>
-                <div className="text-sm text-muted-foreground">Hexagon ID</div>
-                <div className="font-mono text-sm">{hexagon.hexagon_id}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Status</div>
-                <div className="flex items-center gap-2">
-                  {showBusinesses
-                    ? `${businesses.length} businesses found`
-                    : showNoBusinesses
-                    ? "No businesses found"
-                    : "Not yet fetched"}
-                </div>
+            <div className="text-xs font-mono text-muted-foreground">
+              <div className="flex items-center">
+                <Hexagon className="h-4 w-4 mr-2 text-primary" />
+                {hexagon.hexagon_id}
               </div>
             </div>
           </div>
@@ -193,17 +176,14 @@ export default function HexagonDetails({
               {/* Businesses List or Fetch Button */}
               {showBusinesses ? (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Businesses</h3>
-                  <div className="space-y-4">
-                    {businesses.map((business) => (
-                      <BusinessCard
-                        key={business.place_id}
-                        business={business}
-                        isSelected={selectedBusinessId === business.place_id}
-                        onClick={() => handleBusinessClick(business)}
-                      />
-                    ))}
-                  </div>
+                  {businesses.map((business) => (
+                    <BusinessCard
+                      key={business.place_id}
+                      business={business}
+                      isSelected={selectedBusinessId === business.place_id}
+                      onClick={() => handleBusinessClick(business)}
+                    />
+                  ))}
                 </div>
               ) : showNoBusinesses ? (
                 <div className="text-center p-8 bg-white dark:bg-zinc-800 rounded-lg shadow-md">
