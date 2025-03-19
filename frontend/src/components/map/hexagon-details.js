@@ -67,33 +67,32 @@ function BusinessCard({ business, isSelected, onClick }) {
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
-      <div className="flex items-start justify-between">
-        <div>
-          <h4 className="font-medium hover:text-primary transition-colors">
-            {business.name}
-          </h4>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {business.types?.slice(0, 3).map((type) => (
-              <span
-                key={type}
-                className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
-              >
-                {formatType(type)}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Opportunity Score */}
       <div>
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <TrendingUp className="h-4 w-4" />
-            <span>Opportunity Score</span>
-          </div>
+        <h4 className="font-medium hover:text-primary transition-colors mb-2">
+          {business.name}
+        </h4>
+
+        {/* Categories */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {business.types?.slice(0, 3).map((type) => (
+            <span
+              key={type}
+              className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground"
+            >
+              {formatType(type)}
+            </span>
+          ))}
+          {business.types?.length > 3 && (
+            <span className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-muted-foreground">
+              +{business.types.length - 3}
+            </span>
+          )}
+        </div>
+
+        {/* Score and Progress Bar */}
+        <div className="flex items-center justify-end text-sm mb-2">
           <span
-            className={`text-sm font-medium ${
+            className={`font-medium ${
               business.analysis.opportunityScore > 70
                 ? "text-green-600"
                 : business.analysis.opportunityScore > 40
@@ -155,7 +154,7 @@ export default function HexagonDetails({
         <>
           {/* Header */}
           <div className="p-6 border-b bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm">
-            <div className="text-xl font-semibold mb-2">
+            <div className="text-base font-semibold mb-2">
               {showBusinesses
                 ? `${businesses.length} Businesses Found`
                 : showNoBusinesses
