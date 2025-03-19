@@ -362,20 +362,14 @@ export default function Map() {
                 onClick={() => handleHexagonClick(hexagon)}
                 options={{
                   fillColor: isSelected
-                    ? "#3b82f6"
+                    ? "#000000"
                     : hasNoBusinesses
                     ? "#ef4444"
                     : isExisting
                     ? "#22c55e"
                     : "#6366f1",
                   fillOpacity: 0.2,
-                  strokeColor: isSelected
-                    ? "#2563eb"
-                    : hasNoBusinesses
-                    ? "#dc2626"
-                    : isExisting
-                    ? "#16a34a"
-                    : "#4f46e5",
+                  strokeColor: "#ffffff",
                   strokeWeight: isSelected ? 2 : 1,
                   strokeOpacity: 0.8,
                 }}
